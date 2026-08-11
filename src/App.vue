@@ -45,10 +45,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen } from '@tauri-apps/api/event';
-import { Store } from '@tauri-apps/plugin-store';
+import { LazyStore } from '@tauri-apps/plugin-store';
 
 const appWindow = getCurrentWindow();
-const store = new (Store as any)('store.json');
+const store = new LazyStore('store.json');
 
 // State
 const isLocked = ref(false);
@@ -92,14 +92,19 @@ async function lockMask() {
 
 // Close mask
 async function closeMask() {
-  // Remove self from store
-  await store.load();
-  let maskList: any = await store.get('mask_list') || [];
-  maskList = maskList.filter((m: any) => m.label !== appWindow.label);
-  await store.set('mask_list', maskList);
-  await store.save();
-  
-  await appWindow.close();
+  try {
+    // Remove self from persisted state, but never let a storage error block closing.
+    const maskList = await store.get<any[]>('mask_list') || [];
+    await store.set(
+      'mask_list',
+      maskList.filter((mask) => mask.label !== appWindow.label)
+    );
+    await store.save();
+  } catch (error) {
+    console.error('Failed to remove mask from persisted state:', error);
+  } finally {
+    await appWindow.close();
+  }
 }
 
 // Show context menu
@@ -124,8 +129,7 @@ function hideContextMenu() {
 
 // Save current mask state
 async function saveState() {
-  await store.load();
-  let maskList: any = await store.get('mask_list') || [];
+  const maskList = await store.get<any[]>('mask_list') || [];
   
   // Record coordinates and size
   const pos = await appWindow.outerPosition();
@@ -160,13 +164,16 @@ onMounted(async () => {
   window.addEventListener('click', hideContextMenu);
   
   // Restore state (if restarted)
-  await store.load();
-  const maskList: any = await store.get('mask_list') || [];
-  const current = maskList.find((m: any) => m.label === appWindow.label);
-  if (current) {
-    maskColor.value = current.color || '#000000';
-    maskOpacity.value = current.opacity || 90;
-    // Window position and size will be loaded correctly via JS or Rust later, we update UI here
+  try {
+    const maskList = await store.get<any[]>('mask_list') || [];
+    const current = maskList.find((mask) => mask.label === appWindow.label);
+    if (current) {
+      maskColor.value = current.color || '#000000';
+      maskOpacity.value = current.opacity || 90;
+      // Window position and size are restored by Rust; only restore visual state here.
+    }
+  } catch (error) {
+    console.error('Failed to restore mask state:', error);
   }
   
   // Listen for "unlock_all" event from system tray
