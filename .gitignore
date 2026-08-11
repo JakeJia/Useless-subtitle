@@ -1,5 +1,5 @@
 # =============================================
-# 系统文件 (OS files)
+# System Files
 # =============================================
 .DS_Store
 Thumbs.db
@@ -10,7 +10,7 @@ Desktop.ini
 ehthumbs.db
 
 # =============================================
-# 通用开发工具与临时产物 (General dev tools & build output)
+# General Development Tools & Build Output
 # =============================================
 node_modules/
 dist/
@@ -29,7 +29,7 @@ bun-debug.log*
 tmp/
 *.tsbuildinfo
 
-# 环境变量与密钥 (env & secrets)
+# Environment Variables & Secrets
 .env
 .env.*
 !.env.example
@@ -37,7 +37,7 @@ tmp/
 *.pem
 *.key
 
-# 编译产物 (compiled output)
+# Compiled Output
 *.pyc
 *.pyo
 __pycache__/
@@ -55,7 +55,7 @@ target/
 .eggs/
 
 # =============================================
-# IDE 配置 (IDEs)
+# IDE Configurations
 # =============================================
 # Visual Studio Code
 .vscode/*
@@ -118,7 +118,7 @@ nbactions.xml
 nb-configuration.xml
 
 # =============================================
-# AI 编程助手 / Agent / OMO
+# AI Programming Assistants / Agents / OMO
 # =============================================
 # OpenCode
 .opencode/
@@ -165,7 +165,7 @@ omo-plans/
 .aider*
 .env.aider*
 
-# 其他 AI / Agent 目录与元数据
+# Other AI / Agent Directories & Metadata
 .ai/
 .aiignore
 *.agent.md
@@ -176,7 +176,7 @@ AGENTS.md
 .codegraph/
 
 # =============================================
-# 各语言/框架常见产物 (Language / framework artifacts)
+# Language & Framework Artifacts
 # =============================================
 # JavaScript / Node.js
 .pnp
@@ -230,7 +230,7 @@ x86/
 *.dSYM
 
 # =============================================
-# 测试与 CI (Testing & CI)
+# Testing & CI
 # =============================================
 .nyc_output/
 .jest-cache/
@@ -243,7 +243,7 @@ playwright-report/
 playwright/.cache/
 
 # =============================================
-# 本地配置文件 (Local config)
+# Local Configuration Files
 # =============================================
 *.local.json
 *.local.yaml
@@ -255,7 +255,7 @@ secrets.*
 *.credentials
 
 # =============================================
-# 临时与备份文件 (Backup & temp files)
+# Temporary & Backup Files
 # =============================================
 *.bak
 *.orig
