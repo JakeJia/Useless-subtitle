@@ -1,0 +1,263 @@
+# =============================================
+# 系统文件 (OS files)
+# =============================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+ehthumbs.db
+
+# =============================================
+# 通用开发工具与临时产物 (General dev tools & build output)
+# =============================================
+node_modules/
+dist/
+build/
+out/
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+bun-debug.log*
+.eslintcache
+.cache/
+.temp/
+tmp/
+*.tsbuildinfo
+
+# 环境变量与密钥 (env & secrets)
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+
+# 编译产物 (compiled output)
+*.pyc
+*.pyo
+__pycache__/
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+target/
+*.egg-info/
+.eggs/
+
+# =============================================
+# IDE 配置 (IDEs)
+# =============================================
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/*.code-snippets
+
+# JetBrains (IntelliJ IDEA / PyCharm / WebStorm / GoLand ...)
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Vim / Neovim
+.vim/
+.vimrc
+.nvim/
+*.vim
+
+# Emacs
+\#*\#
+/.emacs.d/
+elpa/
+auto-save-list/
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+.sublime/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# =============================================
+# AI 编程助手 / Agent / OMO
+# =============================================
+# OpenCode
+.opencode/
+
+# OhMyOpenCode (OMO)
+.omo/
+.omo-plans/
+omo-plans/
+
+# Claude Code
+.claude/
+.claude.json
+
+# Cursor
+.cursor/
+.cursorrules
+
+# Codex
+.codex/
+.codex.json
+
+# GitHub Copilot
+.copilot/
+
+# Windsurf
+.windsurf/
+.windsurfrules
+
+# Cline / Roo Code
+.cline/
+.clineignore
+.roo/
+.roorules
+
+# Gemini CLI / AI CLI
+.gemini/
+.gemini.json
+
+# Continue
+.continue/
+.continue.json
+
+# Aider
+.aider*
+.env.aider*
+
+# 其他 AI / Agent 目录与元数据
+.ai/
+.aiignore
+*.agent.md
+AGENTS.md
+.factory/
+.serena/
+.kiro/
+.codegraph/
+
+# =============================================
+# 各语言/框架常见产物 (Language / framework artifacts)
+# =============================================
+# JavaScript / Node.js
+.pnp
+.pnp.js
+*.lcov
+
+# Python
+venv/
+.venv/
+env/
+ENV/
+.python-version
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+*.whl
+*.egg
+
+# Rust
+**/*.rs.bk
+
+# Go
+*.test
+*.out
+
+# Java / Kotlin
+.gradle/
+.kotlin/
+*.jar
+*.war
+*.ear
+
+# C / C++
+Debug/
+Release/
+x64/
+x86/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Swift / iOS / macOS
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# =============================================
+# 测试与 CI (Testing & CI)
+# =============================================
+.nyc_output/
+.jest-cache/
+.jest/
+*.test.ts.snap
+*.test.js.snap
+test-results/
+playwright-report/
+.blob-report/
+playwright/.cache/
+
+# =============================================
+# 本地配置文件 (Local config)
+# =============================================
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+settings.local.*
+secrets.*
+*.secret
+*.credentials
+
+# =============================================
+# 临时与备份文件 (Backup & temp files)
+# =============================================
+*.bak
+*.orig
+*.rej
+*.pdf
