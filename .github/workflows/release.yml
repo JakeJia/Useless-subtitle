@@ -5,14 +5,56 @@ on:
     branches:
       - main
       - 'fix/**'
+      - 'refactor/**'
     tags:
       - 'v*'
   pull_request:
   workflow_dispatch:
 
 jobs:
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.97.1
+        with:
+          components: rustfmt, clippy
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Check frontend
+        run: npm run check
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+
+      - name: Lint Rust
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
+
+      - name: Test Rust
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
   build:
     name: Build (${{ matrix.artifact }})
+    needs: quality
     permissions:
       contents: read
     strategy:
@@ -134,7 +176,7 @@ jobs:
   release:
     name: Publish GitHub Release
     if: github.ref_type == 'tag'
-    needs: build
+    needs: [quality, build]
     runs-on: ubuntu-22.04
     permissions:
       contents: write

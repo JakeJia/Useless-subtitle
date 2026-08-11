@@ -13,7 +13,7 @@
     "macOSPrivateApi": true,
     "windows": [],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: data:; connect-src ipc: http://ipc.localhost"
     }
   },
   "bundle": {
@@ -27,7 +27,7 @@
     },
     "macOS": {
       "frameworks": [],
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "11.0"
     },
     "active": true,
     "targets": "all",
