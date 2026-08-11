@@ -1,160 +1,158 @@
-没有# 软件需求规格说明书 (Software Requirements Specification)
+[中文](./SRS_zh.md) | English
 
-> **项目名称**: Useless Subtitle (字幕遮罩工具)  
-> **文档版本**: v0.2 (Draft)  
-> **更新时间**: 2026-08-07  
-> **说明**: 本文档依据 ISO/IEC/IEEE 29148 标准框架制定，旨在全面梳理工具的功能、交互、非功能需求及边界场景。请参照【选项/推荐】与【待补充/确认】进行填充。
+# Software Requirements Specification (SRS)
+
+> **Project Name**: Useless Subtitle
+> **Document Version**: v0.2 (Draft)
+> **Update Time**: 2026-08-07
+> **Description**: This document is formulated based on the ISO/IEC/IEEE 29148 standard framework, aiming to comprehensively outline the tool's functions, interactions, non-functional requirements, and boundary scenarios.
 
 ---
 
-## 1. 引言 (Introduction)
+## 1. Introduction
 
-### 1.1 编写目的
-本文档明确“Useless Subtitle”字幕遮罩工具的产品需求、系统边界、交互逻辑与非功能指标，为技术选型、架构设计及自动化测试提供规范依据。
+### 1.1 Purpose
+This document clarifies the product requirements, system boundaries, interaction logic, and non-functional metrics of the "Useless Subtitle" mask tool, providing a standard basis for technology selection, architecture design, and automated testing.
 
-### 1.2 术语表 (Glossary)
-| 术语 | 英文 / 别名 | 说明 |
+### 1.2 Glossary
+| Term | Alias | Description |
 | :--- | :--- | :--- |
-| **置顶** | Topmost / Always on Top | 窗口在操作系统窗口层级中保持最高优先级，不被其他普通窗口覆盖。 |
-| **鼠标穿透** | Click-through / Pass-through | 遮罩窗口忽略所有鼠标点击/滚轮事件，将事件直接传递给遮罩下方的应用（如浏览器视频播放器）。 |
-| **锁定模式** | Lock Mode | 遮罩进入固定状态，禁止拖动和变形，并开启鼠标穿透。 |
-| **系统托盘** | System Tray / Menu Bar | Windows 任务栏右下角 notification area 或 macOS 顶部 Menu Bar 的小图标。 |
-| **DPI 感知** | High DPI Awareness | 适配高分辨率屏幕缩放（如 125%, 150%, 200%），防止界面模糊或坐标偏移。 |
+| **Always on Top** | Topmost | The window maintains the highest priority in the operating system's window hierarchy and is not covered by other normal windows. |
+| **Click-through** | Pass-through | The mask window ignores all mouse click/scroll events, passing them directly to the application below the mask (such as a browser video player). |
+| **Lock Mode** | Lock Mode | The mask enters a fixed state, disabling dragging and resizing, and enabling mouse click-through. |
+| **System Tray** | Menu Bar | The small icon in the Windows taskbar notification area or the macOS top Menu Bar. |
+| **High DPI Awareness** | DPI Awareness | Adapts to high-resolution screen scaling (e.g., 125%, 150%, 200%) to prevent blurry interfaces or coordinate offsets. |
 
-### 1.3 产品范围
-本项目是一款轻量级桌面端实用工具。主要用于用户在观看在线视频（如 Bilibili、YouTube）或播放本地视频时，在屏幕上叠加一个或多个可自定义的置顶遮罩层，用以遮挡视频画面中不需要的字幕（如中英双语字幕中的中文字幕），以提供专注的外语学习或无干扰观影环境。
-
----
-
-## 2. 总体描述 (Overall Description)
-
-### 2.1 运行环境 (Operating Operating Environment)
-* **操作系统支持**:
-  * [ ] 选项 A: **Windows 优先** (Windows 10 / 11 64-bit)
-  * [ ] 选项 B: **macOS 优先** (macOS 11+ Intel & Apple Silicon)
-  * [x] 选项 C: **跨平台** (Windows + macOS) *(推荐：采用 Tauri / PyQt 即可轻松实现)*
-
-
-### 2.2 用户群体与典型场景
-* **目标用户**: 外语学习者、海外影视爱好者、视频/内容创作者。
-* **核心场景**: 
-  1. 用户在浏览器打开 Bilibili 播放英文原声视频，视频带有中文字幕。
-  2. 启动本工具，拖动遮罩层精准覆盖中文字幕区域，并调节适当透明度/颜色。
-  3. 按下快捷键或点击锁定，遮罩进入穿透模式，用户可以正常点击视频播放/暂停、调节进度条。
+### 1.3 Product Scope
+This project is a lightweight desktop utility tool. It is primarily used when users watch online videos (like Bilibili, YouTube) or play local videos, overlaying one or more customizable always-on-top mask layers on the screen to cover unwanted subtitles in the video frame (such as Chinese subtitles in bilingual videos), providing a focused foreign language learning or distraction-free viewing environment.
 
 ---
 
-## 3. 功能需求 (Functional Requirements)
+## 2. Overall Description
 
-### 3.1 遮罩窗口与外观控制 (Mask Window & Appearance)
-* **3.1.1 无边框置顶**: 遮罩窗口必须没有任何系统原生标题栏、边框，并且保持最高置顶级别 (`Topmost`)。
-* **3.1.2 颜色与透明度调节**:
-  * **颜色**: 支持常用颜色预设（黑、白、灰色、半透明灰）以及调色板自定义 HEX/RGB。
-  * **透明度 (Opacity)**: 支持 10% - 100% 透明度，步进间隔10%。
-  * **推荐默认值**: 纯黑色 (`#000000`)，不透明度 `90%`。
-* **3.1.3 样式扩展 (可选)**:
-  * 四角进行圆角处理
+### 2.1 Operating Environment
+* **OS Support**:
+  * [ ] Option A: **Windows First** (Windows 10 / 11 64-bit)
+  * [ ] Option B: **macOS First** (macOS 11+ Intel & Apple Silicon)
+  * [x] Option C: **Cross-platform** (Windows + macOS) *(Recommended: Easily achievable using Tauri / PyQt)*
 
-### 3.2 交互与尺寸调整 (Drag, Resize & Edge Cases)
-* **3.2.1 自由拖拽与变形**: 
-  * 在解锁状态下，鼠标左键按住边框可单向拖动扩展，四角部位拖住可双方向拖动拓展。
-  * 鼠标移动到遮罩边缘/四角时显示调整手势，允许拉伸尺寸。
-* **3.2.2 最小尺寸与防丢失保护**:
-  * 设置最小尺寸限制（例如 `50px x 20px`），防止拉得太小导致无法选中。
-  * **防丢失逻辑**: 启动时校验上次保存的坐标是否处于当前连通的显示器有效区域内。若超出范围，自动重置到主显示器中央。
+### 2.2 User Demographics and Typical Scenarios
+* **Target Users**: Foreign language learners, overseas film and television enthusiasts, video/content creators.
+* **Core Scenarios**: 
+  1. A user opens Bilibili in a browser to play a video with original English audio, but the video has hardcoded Chinese subtitles.
+  2. The user launches this tool, drags the mask layer to precisely cover the Chinese subtitle area, and adjusts the appropriate opacity/color.
+  3. The user presses a shortcut key or clicks lock, the mask enters click-through mode, and the user can normally click the video to play/pause or adjust the progress bar.
 
-### 3.3 锁定模式与鼠标穿透 (Click-through / Lock Mode) **[核心关键]**
-* **3.3.1 状态切换逻辑**:
+---
+
+## 3. Functional Requirements
+
+### 3.1 Mask Window & Appearance
+* **3.1.1 Borderless Always on Top**: The mask window must not have any native OS title bars or borders, and must maintain the highest topmost level (`Topmost`).
+* **3.1.2 Color and Opacity Adjustment**:
+  * **Color**: Supports common color presets (black, white, gray, translucent gray) as well as custom HEX/RGB via a color palette.
+  * **Opacity**: Supports 10% - 100% opacity, with 10% step intervals.
+  * **Recommended Defaults**: Pure black (`#000000`), opacity `90%`.
+* **3.1.3 Style Extensions (Optional)**:
+  * Rounded corners for the four edges.
+
+### 3.2 Drag, Resize & Edge Cases
+* **3.2.1 Free Dragging and Resizing**: 
+  * In the unlocked state, holding the left mouse button on the border allows one-way dragging to expand, and holding the four corners allows two-way dragging to expand.
+  * When the mouse moves to the mask edges/corners, a resize cursor is displayed, allowing size adjustment.
+* **3.2.2 Minimum Size and Anti-loss Protection**:
+  * Set a minimum size limit (e.g., `50px x 20px`) to prevent it from being resized too small to be selected.
+  * **Anti-loss Logic**: Upon startup, verify if the previously saved coordinates are within the valid area of the currently connected monitors. If out of bounds, automatically reset to the center of the primary monitor.
+
+### 3.3 Click-through / Lock Mode **[Core Feature]**
+* **3.3.1 State Switching Logic**:
   ```
-  [编辑状态 (Editable)]  <---(快捷键 / 托盘菜单 / 右键菜单)--->  [锁定/穿透状态 (Locked)]
-  - 可拖拽/调整大小                                           - 无法拖拽/变形
-  - 拦截鼠标事件                                             - 鼠标点击/滚轮直接穿透到底层
-  - 显示虚线边框/手势提示                                     - 无边框纯色/透明
+  [Editable State]  <---(Shortcut / Tray Menu / Context Menu)--->  [Locked State]
+  - Draggable/Resizable                                            - Cannot drag/resize
+  - Intercepts mouse events                                        - Mouse clicks/scrolls pass directly through to the bottom
+  - Shows dashed border/resize cursors                             - Borderless solid color/transparent
   ```
-* **3.3.2 穿透后如何解锁 (Unlock Mechanisms)**:
-  * 当进入穿透模式后，遮罩不再响应鼠标右键。必须提供可靠的解锁途径：
-    * **途径 1**: 为避免和用户应用快捷键冲突，不设置全局快捷键。
-    * **途径 2**: 系统托盘图标（右键托盘小图标 -> 点击“解锁遮罩”或“切换锁定”）。
-    * **途径 3**: 遮罩框内右上角配备解锁锁定图标按钮，即一个🔒和🔓的状态显示按钮，鼠标悬浮时使鼠标显示可点击手势，锁定和解锁状态都可以点击，通过单击切换到相反状态，图标随之切换。
-  * **综合方案**: 锁定/解锁按钮+ 系统托盘图标
+* **3.3.2 Unlock Mechanisms**:
+  * Once in click-through mode, the mask no longer responds to right-clicks. Reliable unlock methods must be provided:
+    * **Method 1**: To avoid conflicts with user application shortcuts, do not set global shortcuts.
+    * **Method 2**: System tray icon (Right-click tray icon -> Click "Unlock All" or "Toggle Visibility").
+    * **Method 3**: Equip the top right corner of the mask frame with an unlock/lock icon button, displaying a 🔒 and 🔓 state. When hovering, the mouse shows a clickable cursor. Both locked and unlocked states can be clicked, switching to the opposite state upon a single click, with the icon changing accordingly.
+  * **Comprehensive Solution**: Lock/Unlock button + System tray icon.
 
+### 3.4 Configuration Persistence
+* **3.4.1 Auto-save Configuration**:
+  * When exiting the software or modifying settings, automatically save the following configurations to a local JSON/config file:
+    * Mask position (`x`, `y`), size (`width`, `height`)
+    * Color (`color`), opacity (`opacity`)
+    * Lock state (`is_locked`)
+* **3.4.2 Memory Reload**: Automatically restore the previous mask state and position upon the next startup.
 
-### 3.4 状态持久化 (Configuration Persistence)
-* **3.4.1 配置自动保存**:
-  * 退出软件或修改设置时，自动保存以下配置至本地 JSON/配置文件：
-    * 遮罩位置 (`x`, `y`)、尺寸 (`width`, `height`)
-    * 颜色 (`color`)、透明度 (`opacity`)
-    * 锁定状态 (`is_locked`)
-* **3.4.2 记忆重载**: 下次启动时自动恢复上一次的遮罩状态与位置。
-
-### 3.5 多遮罩实例支持 (Multi-Mask Support)
-* **需求描述**: 是否允许同时创建多个遮罩层（如同时遮挡顶部提示和底部字幕）？
-  * [ ] **单遮罩模式**: 简单轻量，全局只有一个遮罩窗口。
-  * [x] **多遮罩模式**: 托盘菜单支持“新建遮罩窗口”，每个窗口独立管理。
-
+### 3.5 Multi-Mask Support
+* **Requirement Description**: Is it allowed to create multiple mask layers simultaneously (e.g., covering top prompts and bottom subtitles at the same time)?
+  * [ ] **Single Mask Mode**: Simple and lightweight, only one mask window globally.
+  * [x] **Multi-Mask Mode**: The tray menu supports "New Mask", with each window managed independently.
 
 ---
 
-## 4. 用户界面与控制交互 (UI / UX Control)
+## 4. UI / UX Control
 
-### 4.1 控制交互入口设计
-由于遮罩窗口自身极简无 UI，控制操作需通过外围入口实现：
-1. **系统托盘 (System Tray)**:
-   - **左键点击**: 显示/隐藏所有遮罩。
-   - **右键菜单项**:
-     - 切换锁定状态 (`Lock / Unlock`)
-     - 遮罩设置 (`设置颜色...` / `透明度 10%~100%`)
-     - 重置位置与大小 (`Reset Position`)
-     - 开机自启设置 (`Launch on Startup`)
-     - 退出软件 (`Exit`)
-
----
-
-## 5. 边界场景与特殊适配 (Boundary Conditions)
-
-### 5.1 全屏视频播放适配 (Fullscreen Adaptation)
-* **问题描述**: 浏览器切换到 HTML5 全屏或操作系统全屏（如 F11 全屏）时，视频窗口可能抢占最高层级，导致普通置顶窗口被覆盖。
-* **解决方案要求**:
-  * Windows 下需使用 `WS_EX_TOPMOST` 及对应的顶级窗口层级。
-  * macOS 下需将 Window Level 设置为 `NSStatusWindowLevel` 或 `NSScreenSaverWindowLevel` 级别的 Overlay，确保全屏下依然保持在最前。
-
-### 5.2 多显示器与 High DPI 缩放适配
-* **问题描述**: 用户在不同 DPI 缩放（如主屏 4K 150%，副屏 1080p 100%）之间拖拽遮罩时，可能出现大小突变或坐标错位。
-* **解决方案要求**: 程序需声明 `Per-Monitor DPI Aware`（高 DPI 感知），使用物理像素与逻辑像素转换，保证拖拽流畅。
-
-### 5.3 操作系统权限与安全 (OS Permissions)
-* **macOS 权限需求**: macOS 下监听全局快捷键和实现窗口事件穿透可能需要用户在“系统设置 -> 隐私与安全性 -> 辅助功能 (Accessibility)”中赋予权限。软件首次启动时需提供友好引导提示。
+### 4.1 Control Interaction Entry Design
+Since the mask window itself is extremely minimalist with no UI, control operations need to be implemented through peripheral entries:
+1. **System Tray**:
+   - **Left Click**: Toggle visibility of all masks.
+   - **Right-click Menu Items**:
+     - Toggle lock state (`Unlock All`)
+     - Mask settings (`Color...` / `Opacity 10%~100%`) - *Note: Handled via context menu in current implementation*
+     - Reset position and size (`Reset Position`)
+     - Launch on startup settings (`Launch on Startup`)
+     - Exit software (`Quit`)
 
 ---
 
-## 6. 非功能需求 (Non-Functional Requirements)
+## 5. Boundary Conditions
 
-### 6.1 性能与资源消耗 (Performance)
-* **内存占用**: 常驻后台运行时内存占用要求：
-  * Windows / macOS: **< 30MB**（若采用 Tauri / C# / C++）或 **< 80MB**（若采用 Python/PyQt）。
-* **CPU 占用**: 后台静止及穿透状态下 CPU 占用接近 **0%**。
-* **启动速度**: 软件冷启动时间不超过 **1.0 秒**。
+### 5.1 Fullscreen Adaptation
+* **Problem Description**: When the browser switches to HTML5 fullscreen or OS fullscreen (like F11 fullscreen), the video window may preempt the highest level, causing normal always-on-top windows to be covered.
+* **Solution Requirements**:
+  * On Windows, `WS_EX_TOPMOST` and the corresponding top-level window hierarchy must be used.
+  * On macOS, the Window Level needs to be set to an Overlay at the `NSStatusWindowLevel` or `NSScreenSaverWindowLevel` level to ensure it remains on top even in fullscreen.
 
-### 6.2 打包与部署 (Deployment)
-* **绿化与轻量化**: 提供单文件免安装便携版（Portable），解压即用；不强求依赖复杂的安装包。
+### 5.2 Multi-monitor and High DPI Scaling Adaptation
+* **Problem Description**: When a user drags the mask between different DPI scalings (e.g., primary screen 4K 150%, secondary screen 1080p 100%), sudden size changes or coordinate offsets may occur.
+* **Solution Requirements**: The program must declare `Per-Monitor DPI Aware`, using physical to logical pixel conversion to ensure smooth dragging.
+
+### 5.3 OS Permissions
+* **macOS Permission Requirements**: On macOS, listening to global shortcuts and implementing window event click-through may require the user to grant permissions in "System Settings -> Privacy & Security -> Accessibility". A friendly guide prompt should be provided upon the software's first launch.
 
 ---
 
-## 7. 技术选型评估 (Tech Stack Assessment)
+## 6. Non-Functional Requirements
 
-| 技术栈 | 跨平台 | 内存占用 | 打包体积 | 开发效率 | 推荐度 | 评语 |
+### 6.1 Performance
+* **Memory Footprint**: Memory usage requirements when running resident in the background:
+  * Windows / macOS: **< 30MB** (if using Tauri / C# / C++) or **< 80MB** (if using Python/PyQt).
+* **CPU Usage**: CPU usage in background idle and click-through states should be close to **0%**.
+* **Startup Speed**: Software cold start time should not exceed **1.0 second**.
+
+### 6.2 Deployment
+* **Portable and Lightweight**: Provide a single-file, installation-free portable version, ready to use upon extraction; do not force reliance on complex installation packages.
+
+---
+
+## 7. Tech Stack Assessment
+
+| Tech Stack | Cross-platform | Memory | Package Size | Dev Efficiency | Recommendation | Comments |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Tauri + Web** | 是 | ~20-30MB | ~10MB | 高 | ⭐⭐⭐⭐⭐ | 极力推荐。原生 Rust 窗口底座 + Web 前端 UI，非常轻量且易于实现置顶/穿透/托盘。 |
-| **C# WPF / WinUI** | 否(仅Win) | ~15-30MB | ~15MB | 高 | ⭐⭐⭐⭐ | 如果只做 Windows，WPF 处理 Win32 `WS_EX_TRANSPARENT` 穿透极度成熟丝滑。 |
-| **Python + PyQt6** | 是 | ~60-90MB | ~30MB | 极高 | ⭐⭐⭐ | 开发最快，但 Python 解释器打包后体积和内存相对偏大。 |
-| **Electron** | 是 | ~100MB+ | ~80MB+ | 高 | ⭐⭐ | 内存和体积偏大，违背“极轻量”初衷。 |
+| **Tauri + Web** | Yes | ~20-30MB | ~10MB | High | ⭐⭐⭐⭐⭐ | Highly recommended. Native Rust window base + Web frontend UI, extremely lightweight and easy to implement topmost/click-through/tray. |
+| **C# WPF / WinUI** | No (Win only) | ~15-30MB | ~15MB | High | ⭐⭐⭐⭐ | If only targeting Windows, WPF handles Win32 `WS_EX_TRANSPARENT` click-through extremely maturely and smoothly. |
+| **Python + PyQt6** | Yes | ~60-90MB | ~30MB | Very High | ⭐⭐⭐ | Fastest development, but the packaged Python interpreter has a relatively large size and memory footprint. |
+| **Electron** | Yes | ~100MB+ | ~80MB+ | High | ⭐⭐ | Memory and size are too large, violating the "extremely lightweight" original intention. |
 
 ---
 
-## 8. 待用户决策与填充事项汇总 (Action Items)
+## 8. Action Items
 
-请在开始编码前，对以下项进行确认：
-1. [x] **运行平台**: 跨平台 (Windows/macOS)
-2. [x] **多遮罩**: 支持同时创建【多个遮罩层】
-
-4. [x] **技术选型**: 首选使用 **Tauri**，次选使用 **Python/PyQt** 作为开发栈
+Please confirm the following items before starting coding:
+1. [x] **Operating Platform**: Cross-platform (Windows/macOS)
+2. [x] **Multi-Mask**: Support creating [multiple mask layers] simultaneously
+3. [x] **Tech Stack**: Primary choice is **Tauri**, secondary choice is **Python/PyQt**

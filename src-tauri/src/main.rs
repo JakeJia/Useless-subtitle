@@ -13,7 +13,7 @@ fn main() {
         .setup(|app| {
             tray::setup_tray(app.handle())?;
 
-            // 安全加载历史窗口
+            // Safely load historical windows
             let store = app.store("store.json");
             
             match store {

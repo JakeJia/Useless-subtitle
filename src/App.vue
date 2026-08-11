@@ -1,5 +1,5 @@
 <template>
-  <!-- 当锁定且穿透时，完全去掉外边框提示 -->
+  <!-- Remove outer border completely when locked and click-through is enabled -->
   <div class="mask-container" 
        :class="{ 'is-locked': isLocked }"
        :style="{ backgroundColor: hexToRgba(maskColor, maskOpacity) }"
@@ -7,7 +7,7 @@
        @contextmenu.prevent="showContextMenu">
     
     <template v-if="!isLocked">
-      <!-- 拖拽拉伸边框/四角手柄 -->
+      <!-- Resize handles for edges and corners -->
       <div class="resize-handle top" @mousedown="startResize('TOP')" />
       <div class="resize-handle bottom" @mousedown="startResize('BOTTOM')" />
       <div class="resize-handle left" @mousedown="startResize('LEFT')" />
@@ -18,25 +18,25 @@
       <div class="resize-handle bottom-left" @mousedown="startResize('BOTTOM_LEFT')" />
       <div class="resize-handle bottom-right" @mousedown="startResize('BOTTOM_RIGHT')" />
 
-      <!-- 右上角悬浮控制按钮 -->
+      <!-- Floating control buttons in the top right corner -->
       <div class="controls">
-        <button class="icon-btn lock-btn" @click.stop="lockMask" title="锁定并穿透 (Lock)">🔒</button>
-        <button class="icon-btn close-btn" @click.stop="closeMask" title="关闭遮罩 (Close)">❌</button>
+        <button class="icon-btn lock-btn" @click.stop="lockMask" title="Lock and Click-through">🔒</button>
+        <button class="icon-btn close-btn" @click.stop="closeMask" title="Close Mask">❌</button>
       </div>
     </template>
 
-    <!-- 自定义右键菜单 -->
+    <!-- Custom context menu -->
     <div v-if="contextMenuVisible" class="context-menu" :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }" @click.stop>
       <div class="menu-item">
-        <label>颜色:</label>
+        <label>Color:</label>
         <input type="color" v-model="maskColor" @change="saveState" />
       </div>
       <div class="menu-item">
-        <label>透明度: {{ maskOpacity }}%</label>
+        <label>Opacity: {{ maskOpacity }}%</label>
         <input type="range" min="10" max="100" step="10" v-model="maskOpacity" @change="saveState" />
       </div>
       <hr />
-      <div class="menu-item danger" @click="closeMask">关闭此遮罩 (Close)</div>
+      <div class="menu-item danger" @click="closeMask">Close Mask</div>
     </div>
   </div>
 </template>
@@ -50,17 +50,17 @@ import { Store } from '@tauri-apps/plugin-store';
 const appWindow = getCurrentWindow();
 const store = new (Store as any)('store.json');
 
-// 状态
+// State
 const isLocked = ref(false);
 const maskColor = ref('#000000');
 const maskOpacity = ref(90);
 
-// 右键菜单状态
+// Context menu state
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 
-// 工具函数：Hex 转 RGBA
+// Utility function: Convert Hex to RGBA
 function hexToRgba(hex: string, opacityPercent: number) {
   let r = 0, g = 0, b = 0;
   if (hex.length === 4) {
@@ -75,24 +75,24 @@ function hexToRgba(hex: string, opacityPercent: number) {
   return `rgba(${r}, ${g}, ${b}, ${opacityPercent / 100})`;
 }
 
-// 拖拽拉伸
+// Drag to resize
 function startResize(_direction: string) {
   if (!isLocked.value) {
     appWindow.startDragging();
   }
 }
 
-// 锁定并开启穿透
+// Lock and enable click-through
 async function lockMask() {
   isLocked.value = true;
   contextMenuVisible.value = false;
-  // 调用底层 API 穿透
+  // Call underlying API for click-through
   await appWindow.setIgnoreCursorEvents(true);
 }
 
-// 关闭遮罩
+// Close mask
 async function closeMask() {
-  // 从 store 中移除自己
+  // Remove self from store
   await store.load();
   let maskList: any = await store.get('mask_list') || [];
   maskList = maskList.filter((m: any) => m.label !== appWindow.label);
@@ -102,12 +102,12 @@ async function closeMask() {
   await appWindow.close();
 }
 
-// 显示右键菜单
+// Show context menu
 function showContextMenu(e: MouseEvent) {
-  if (isLocked.value) return; // 锁定状态下已穿透，理论上触发不到
+  if (isLocked.value) return; // Already click-through when locked, theoretically unreachable
   contextMenuVisible.value = true;
   
-  // 简单计算一下边界，防止菜单超出窗口
+  // Calculate boundaries to prevent menu from overflowing the window
   let x = e.clientX;
   let y = e.clientY;
   if (x > window.innerWidth - 150) x = window.innerWidth - 150;
@@ -117,17 +117,17 @@ function showContextMenu(e: MouseEvent) {
   contextMenuY.value = y;
 }
 
-// 点击其他地方隐藏右键菜单
+// Hide context menu when clicking elsewhere
 function hideContextMenu() {
   contextMenuVisible.value = false;
 }
 
-// 保存当前遮罩状态
+// Save current mask state
 async function saveState() {
   await store.load();
   let maskList: any = await store.get('mask_list') || [];
   
-  // 记录坐标与大小
+  // Record coordinates and size
   const pos = await appWindow.outerPosition();
   const size = await appWindow.outerSize();
   
@@ -159,7 +159,7 @@ let unlistenResized: () => void;
 onMounted(async () => {
   window.addEventListener('click', hideContextMenu);
   
-  // 恢复状态 (如果是重新启动的)
+  // Restore state (if restarted)
   await store.load();
   const maskList: any = await store.get('mask_list') || [];
   const current = maskList.find((m: any) => m.label === appWindow.label);
@@ -169,13 +169,13 @@ onMounted(async () => {
     // Window position and size will be loaded correctly via JS or Rust later, we update UI here
   }
   
-  // 监听来自系统托盘的“全局解锁”事件
+  // Listen for "unlock_all" event from system tray
   unlistenUnlock = await listen('unlock_all', async () => {
     isLocked.value = false;
-    // 穿透状态恢复是在 Rust 里做的，这里只需更新 UI
+    // Click-through state restoration is handled in Rust, only update UI here
   });
 
-  // 监听移动与拉伸结束事件以持久化保存坐标
+  // Listen for move and resize end events to persist coordinates
   unlistenMoved = await appWindow.onMoved(() => saveState());
   unlistenResized = await appWindow.onResized(() => saveState());
 });
@@ -189,7 +189,7 @@ onUnmounted(() => {
 </script>
 
 <style>
-/* 全局充斥，透明背景 */
+/* Full screen, transparent background */
 html, body, #app {
   margin: 0;
   padding: 0;
@@ -200,14 +200,14 @@ html, body, #app {
   user-select: none;
 }
 
-/* 核心遮罩层 */
+/* Core mask layer */
 .mask-container {
   width: 100vw;
   height: 100vh;
   border-radius: 12px;
   position: relative;
   box-sizing: border-box;
-  /* 编辑状态下显示微弱白框，提示用户可操作 */
+  /* Show faint white border in edit mode to indicate interactivity */
   border: 1px dashed rgba(255, 255, 255, 0.4);
   transition: background-color 0.2s;
 }
@@ -216,7 +216,7 @@ html, body, #app {
   border: none;
 }
 
-/* 拉伸边缘热区 */
+/* Resize edge hot zones */
 .resize-handle {
   position: absolute;
 }
@@ -230,7 +230,7 @@ html, body, #app {
 .bottom-left { bottom: 0; left: 0; width: 15px; height: 15px; cursor: sw-resize; }
 .bottom-right { bottom: 0; right: 0; width: 15px; height: 15px; cursor: se-resize; }
 
-/* 悬浮控制按钮 */
+/* Floating control buttons */
 .controls {
   position: absolute;
   top: 8px;
@@ -264,7 +264,7 @@ html, body, #app {
   background: rgba(255, 50, 50, 0.8);
 }
 
-/* 右键菜单 */
+/* Context menu */
 .context-menu {
   position: absolute;
   background: rgba(30, 30, 30, 0.95);

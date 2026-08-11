@@ -9,10 +9,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static MASK_COUNTER: AtomicUsize = AtomicUsize::new(1);
 
 pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    let new_i = MenuItem::with_id(app, "new_mask", "新建遮罩 (New Mask)", true, None::<&str>)?;
-    let hide_all_i = MenuItem::with_id(app, "toggle_visibility", "显示/隐藏所有", true, None::<&str>)?;
-    let unlock_all_i = MenuItem::with_id(app, "unlock_all", "🔓 解锁全部 (Unlock All)", true, None::<&str>)?;
-    let quit_i = MenuItem::with_id(app, "quit", "退出 (Quit)", true, None::<&str>)?;
+    let new_i = MenuItem::with_id(app, "new_mask", "New Mask", true, None::<&str>)?;
+    let hide_all_i = MenuItem::with_id(app, "toggle_visibility", "Toggle Visibility", true, None::<&str>)?;
+    let unlock_all_i = MenuItem::with_id(app, "unlock_all", "🔓 Unlock All", true, None::<&str>)?;
+    let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
     let menu = Menu::with_items(app, &[
         &new_i,
@@ -59,7 +59,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 for (_, window) in windows.iter() {
                     let _ = window.set_ignore_cursor_events(false);
                 }
-                // 通知前端 Vue 取消锁定状态，显示边框
+                // Notify frontend Vue to cancel lock state and show border
                 let _ = app.emit("unlock_all", ());
             }
             "quit" => {

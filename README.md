@@ -1,55 +1,57 @@
-# Useless Subtitle (字幕遮罩工具)
+[中文](./docs/README_zh.md) | English
 
-一款极简、轻量的桌面置顶遮罩工具，专为观看带有多余硬字幕（如视频自带的中文字幕）的视频（Bilibili, YouTube 等）而生。它可以帮你轻松遮挡不需要的字幕部分，还你一个沉浸式的观影和外语学习体验。
+# Useless Subtitle
 
-## ✨ 核心特性 (Features)
+A minimalist, lightweight desktop always-on-top mask tool, designed specifically for watching videos with unwanted hardcoded subtitles (like built-in Chinese subtitles on Bilibili, YouTube, etc.). It helps you easily cover unwanted subtitle areas, giving you an immersive viewing and foreign language learning experience.
 
-- **桌面绝对置顶 (Always on Top)**：始终悬浮在视频播放器或浏览器网页上方，稳定置顶不被覆盖。
-- **无感运行 (ToolWindow)**：纯净体验，强制隐藏任务栏图标与 Alt-Tab 切换，唯有系统托盘常驻守护。
-- **锁定与纯净穿透 (Click-through)**：一键开启锁定模式，锁定后遮罩内交互元素全部隐去，且鼠标事件（点击、滚轮等）直接穿透到底层视频，不影响你的任何操作。
-- **多遮罩独立管理 (Multi-Mask)**：支持同时创建多个遮罩层。在编辑状态下，可右键单击任意遮罩独立调节其颜色和透明度，或点击右上角独立的 `❌` 销毁。
-- **安全启动机制 (Safe Boot)**：每次启动自动恢复上次的位置与大小，但会智能解除所有锁定状态，彻底避免启动即死锁的“黑屏恐慌”。
-- **灵活的局部+全局控制**：
-  - **局部操作**：编辑模式下提供右上角内置悬浮 `🔒` 与 `❌` 按钮。
-  - **全局托盘**：系统托盘一键“显示/隐藏所有”、“解锁全部遮罩”，告别快捷键冲突。
-- **外观高度自定义**：支持 10% - 100% 透明度无级调节，自由设置遮罩颜色（纯黑、半透明灰等），边角柔和圆角过渡。
+## ✨ Features
 
-## 📚 项目文档 (Documentation)
+- **Always on Top**: Constantly floats above video players or browser web pages, remaining stably on top without being covered.
+- **ToolWindow Mode**: A pure experience, forcibly hiding the taskbar icon and Alt-Tab switching, with only the system tray standing guard.
+- **Lock and Click-through**: One-click lock mode. Once locked, all interactive elements within the mask disappear, and mouse events (clicks, scrolling, etc.) pass directly through to the underlying video, without affecting any of your operations.
+- **Multi-Mask Management**: Supports creating multiple mask layers simultaneously. In edit mode, you can right-click any mask to independently adjust its color and opacity, or click the independent `❌` in the top right corner to destroy it.
+- **Safe Boot Mechanism**: Automatically restores the previous position and size upon each startup, but intelligently unlocks all states, completely avoiding the "black screen panic" of a deadlocked startup.
+- **Flexible Local + Global Control**:
+  - **Local Operation**: Provides built-in floating `🔒` and `❌` buttons in the top right corner during edit mode.
+  - **Global Tray**: One-click "Toggle Visibility" and "Unlock All" from the system tray, saying goodbye to shortcut conflicts.
+- **Highly Customizable Appearance**: Supports stepless opacity adjustment from 10% to 100%, free setting of mask colors (pure black, translucent gray, etc.), and soft rounded corner transitions.
 
-软件的功能边界与交互逻辑已通过深度沙盘推演并最终定稿。详见：
-- [需求规格说明书 (SRS)](./docs/SRS.md) - **v0.3 Final Confirmed**
+## 📚 Documentation
 
-## 🛠️ 技术选型 (Tech Stack)
+The functional boundaries and interaction logic of the software have been finalized through in-depth sandbox deduction. See details:
+- [Software Requirements Specification (SRS)](./docs/SRS.md) - **v0.3 Final Confirmed**
 
-- **支持平台**: 跨平台支持 (Windows 10/11 & macOS 11+)
-- **首选框架**: **Tauri (Rust + Web)** - 极轻量体积 (~10MB) 与低内存占用 (~20MB)
-- **备选框架**: **Python / PyQt6**
-- **构建工具**: Vite / Cargo (Tauri)
+## 🛠️ Tech Stack
 
-## 📥 下载与安装 (Download)
+- **Supported Platforms**: Cross-platform support (Windows 10/11 & macOS 11+)
+- **Primary Framework**: **Tauri (Rust + Web)** - Extremely lightweight size (~10MB) and low memory footprint (~20MB)
+- **Alternative Framework**: **Python / PyQt6**
+- **Build Tools**: Vite / Cargo (Tauri)
 
-**无需懂编程，下载即用：**
-1. 访问本项目的 [Releases 页面](../../releases) 寻找最新版本。
-2. 根据您的操作系统下载对应文件：
-   - **Windows**: 下载 `.msi` 或 `.exe` 安装包，双击安装。
-   - **macOS**: 下载 `.dmg`，双击打开后拖入“应用程序 (Applications)”文件夹。
-   - **Linux**: 下载 `.AppImage` 或 `.deb`。
+## 📥 Download and Installation
 
-## 💡 如何使用 (How to use)
+**No programming knowledge required, download and use:**
+1. Visit the [Releases page](../../releases) of this project to find the latest version.
+2. Download the corresponding file for your operating system:
+   - **Windows**: Download the `.msi` or `.exe` installer and double-click to install.
+   - **macOS**: Download the `.dmg`, double-click to open, and drag it into the "Applications" folder.
+   - **Linux**: Download the `.AppImage` or `.deb`.
 
-1. 打开软件后，桌面会出现一块**半透明的黑色遮罩**。
-2. **移动与缩放**：使用鼠标拖拽它覆盖到不想要的字幕区域，拖动边缘可调整大小。
-3. **右键设置**：在遮罩上点击**右键**，可独立修改该遮罩的颜色和透明度。
-4. **一键穿透**：点击遮罩右上角的 `🔒` 图标，遮罩框线隐去，**鼠标点击将完全穿透遮罩**（不影响点击底层的网页与视频控件）。
-5. **托盘全局控制**：如需解除穿透、新建多个遮罩、或彻底退出软件，请在**系统托盘 (任务栏右下角 / Mac 菜单栏)** 找到软件图标，右键即可全局控制。
+## 💡 How to Use
 
-## 🗺️ 开发路线图 (Roadmap)
+1. After opening the software, a **translucent black mask** will appear on the desktop.
+2. **Move and Resize**: Use the mouse to drag it over the unwanted subtitle area, and drag the edges to adjust the size.
+3. **Right-click Settings**: **Right-click** on the mask to independently modify its color and opacity.
+4. **One-click Click-through**: Click the `🔒` icon in the top right corner of the mask. The mask border will disappear, and **mouse clicks will completely pass through the mask** (without affecting clicks on the underlying web page and video controls).
+5. **Global Tray Control**: If you need to disable click-through, create multiple masks, or completely exit the software, find the software icon in the **system tray (bottom right corner of the taskbar / Mac menu bar)** and right-click for global control.
 
-- [ ] **v0.1 MVP**: 实现基础置顶无边框遮罩窗口，确保作为 ToolWindow 隐藏任务栏图标，并支持鼠标拖拽与四角/边缘变形。
-- [ ] **v0.2 独立控制与本地持久化**: 引入遮罩内右键菜单独立调色与透明度；实现即时配置本地 JSON 保存与安全重载；托盘新建/关闭多遮罩。
-- [ ] **v0.3 锁定与穿透交互**: 实现遮罩局部悬浮 `🔒`/`❌` 按钮；打通底层操作系统 API 实现纯净鼠标穿透，通过托盘实现全局解锁。
-- [ ] **v1.0 跨平台正式版**: 优化网页/视频全屏模式下的置顶体验与多显示器 DPI 缩放映射，发布 Windows 与 macOS 安装/便携包。
+## 🗺️ Roadmap
 
-## 📄 许可证 (License)
+- [ ] **v0.1 MVP**: Implement a basic always-on-top borderless mask window, ensure it hides the taskbar icon as a ToolWindow, and support mouse dragging and corner/edge resizing.
+- [ ] **v0.2 Independent Control and Local Persistence**: Introduce a right-click menu within the mask for independent color and opacity adjustment; implement real-time configuration saving to local JSON and safe reloading; tray creation/closing of multiple masks.
+- [ ] **v0.3 Lock and Click-through Interaction**: Implement local floating `🔒`/`❌` buttons on the mask; connect underlying OS APIs to achieve pure mouse click-through, and implement global unlocking via the tray.
+- [ ] **v1.0 Cross-platform Official Release**: Optimize the always-on-top experience in web/video full-screen mode and multi-monitor DPI scaling mapping, and release Windows and macOS installation/portable packages.
+
+## 📄 License
 
 [MIT License](LICENSE)
