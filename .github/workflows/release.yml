@@ -35,7 +35,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install frontend dependencies
-        run: npm install # We have already switched to npm
+        run: npm install
 
       - name: Build and Create Release
         uses: tauri-apps/tauri-action@v0
@@ -44,6 +44,38 @@ jobs:
         with:
           tagName: ${{ github.ref_name }} # Use the current tag name
           releaseName: 'Useless Subtitle ${{ github.ref_name }}'
-          releaseBody: '欢迎下载 Useless Subtitle。请根据您的操作系统选择对应的安装包下载（Windows 请下载 .msi 或 .exe，macOS 请下载 .dmg，Linux 下载 .AppImage 或 .deb）。'
+          releaseBody: |
+            ## 🎉 Useless Subtitle ${{ github.ref_name }} Released!
+
+            A minimalist, lightweight desktop mask overlay tool to block unwanted subtitles.
+
+            ### 🚀 Portable / No-Installation Standalone Packages (免安装绿色版)
+            - **Windows (Portable)**: Download `Useless-Subtitle_Windows_x64_Portable.zip`, extract and double-click `useless-subtitle.exe` to run immediately!
+            - **macOS**: Download `.dmg` or `Useless-Subtitle_macOS_Portable.zip`, open and run directly.
+            - **Linux**: Download `.AppImage`, grant execute permissions (`chmod +x`), and double-click to run!
+
+            ### 📦 Standard Installers
+            - **Windows**: `.msi` / `_setup.exe`
+            - **Linux**: `.deb`
           releaseDraft: false
           prerelease: false
+
+      # Prepare Portable ZIP for Windows
+      - name: Package Windows Portable Executable
+        if: matrix.platform == 'windows-latest'
+        shell: bash
+        run: |
+          mkdir -p portable
+          cp src-tauri/target/release/useless-subtitle.exe portable/
+          cd portable
+          7z a ../Useless-Subtitle_Windows_x64_Portable.zip useless-subtitle.exe
+
+      # Upload Windows Portable ZIP to GitHub Release
+      - name: Upload Windows Portable Asset
+        if: matrix.platform == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: Useless-Subtitle_Windows_x64_Portable.zip
