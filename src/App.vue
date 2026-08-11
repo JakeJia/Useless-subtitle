@@ -20,13 +20,13 @@
 
       <!-- 右上角悬浮控制按钮 -->
       <div class="controls">
-        <button class="icon-btn lock-btn" @click="lockMask" title="锁定并穿透">🔒</button>
-        <button class="icon-btn close-btn" @click="closeMask" title="关闭遮罩">❌</button>
+        <button class="icon-btn lock-btn" @click.stop="lockMask" title="锁定并穿透 (Lock)">🔒</button>
+        <button class="icon-btn close-btn" @click.stop="closeMask" title="关闭遮罩 (Close)">❌</button>
       </div>
     </template>
 
     <!-- 自定义右键菜单 -->
-    <div v-if="contextMenuVisible" class="context-menu" :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }">
+    <div v-if="contextMenuVisible" class="context-menu" :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }" @click.stop>
       <div class="menu-item">
         <label>颜色:</label>
         <input type="color" v-model="maskColor" @change="saveState" />
@@ -36,7 +36,7 @@
         <input type="range" min="10" max="100" step="10" v-model="maskOpacity" @change="saveState" />
       </div>
       <hr />
-      <div class="menu-item danger" @click="closeMask">关闭此遮罩</div>
+      <div class="menu-item danger" @click="closeMask">关闭此遮罩 (Close)</div>
     </div>
   </div>
 </template>
@@ -45,8 +45,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen } from '@tauri-apps/api/event';
+import { Store } from '@tauri-apps/plugin-store';
 
 const appWindow = getCurrentWindow();
+const store = new (Store as any)('store.json');
 
 // 状态
 const isLocked = ref(false);
@@ -74,9 +76,9 @@ function hexToRgba(hex: string, opacityPercent: number) {
 }
 
 // 拖拽拉伸
-function startResize(direction: string) {
+function startResize(_direction: string) {
   if (!isLocked.value) {
-    appWindow.startResizing(direction as any);
+    appWindow.startDragging();
   }
 }
 
@@ -90,6 +92,13 @@ async function lockMask() {
 
 // 关闭遮罩
 async function closeMask() {
+  // 从 store 中移除自己
+  await store.load();
+  let maskList: any = await store.get('mask_list') || [];
+  maskList = maskList.filter((m: any) => m.label !== appWindow.label);
+  await store.set('mask_list', maskList);
+  await store.save();
+  
   await appWindow.close();
 }
 
@@ -113,26 +122,69 @@ function hideContextMenu() {
   contextMenuVisible.value = false;
 }
 
-// 假占位，准备给 Sprint 4 用
-function saveState() {
-  // TODO: Sprint 4
+// 保存当前遮罩状态
+async function saveState() {
+  await store.load();
+  let maskList: any = await store.get('mask_list') || [];
+  
+  // 记录坐标与大小
+  const pos = await appWindow.outerPosition();
+  const size = await appWindow.outerSize();
+  
+  const currentMask = {
+    label: appWindow.label,
+    color: maskColor.value,
+    opacity: maskOpacity.value,
+    x: pos.x,
+    y: pos.y,
+    width: size.width,
+    height: size.height
+  };
+  
+  const existingIdx = maskList.findIndex((m: any) => m.label === appWindow.label);
+  if (existingIdx >= 0) {
+    maskList[existingIdx] = currentMask;
+  } else {
+    maskList.push(currentMask);
+  }
+  
+  await store.set('mask_list', maskList);
+  await store.save();
 }
 
 let unlistenUnlock: () => void;
+let unlistenMoved: () => void;
+let unlistenResized: () => void;
 
 onMounted(async () => {
   window.addEventListener('click', hideContextMenu);
+  
+  // 恢复状态 (如果是重新启动的)
+  await store.load();
+  const maskList: any = await store.get('mask_list') || [];
+  const current = maskList.find((m: any) => m.label === appWindow.label);
+  if (current) {
+    maskColor.value = current.color || '#000000';
+    maskOpacity.value = current.opacity || 90;
+    // Window position and size will be loaded correctly via JS or Rust later, we update UI here
+  }
   
   // 监听来自系统托盘的“全局解锁”事件
   unlistenUnlock = await listen('unlock_all', async () => {
     isLocked.value = false;
     // 穿透状态恢复是在 Rust 里做的，这里只需更新 UI
   });
+
+  // 监听移动与拉伸结束事件以持久化保存坐标
+  unlistenMoved = await appWindow.onMoved(() => saveState());
+  unlistenResized = await appWindow.onResized(() => saveState());
 });
 
 onUnmounted(() => {
   window.removeEventListener('click', hideContextMenu);
   if (unlistenUnlock) unlistenUnlock();
+  if (unlistenMoved) unlistenMoved();
+  if (unlistenResized) unlistenResized();
 });
 </script>
 
