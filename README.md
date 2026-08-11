@@ -2,56 +2,77 @@
 
 # Useless Subtitle
 
-A minimalist, lightweight desktop always-on-top mask tool, designed specifically for watching videos with unwanted hardcoded subtitles (like built-in Chinese subtitles on Bilibili, YouTube, etc.). It helps you easily cover unwanted subtitle areas, giving you an immersive viewing and foreign language learning experience.
+Useless Subtitle is a lightweight desktop mask utility for covering unwanted hardcoded subtitles while watching videos. It supports multiple independent always-on-top masks, configurable color and opacity, full mouse click-through, tray-based recovery, and safe multi-monitor restoration.
 
-## ✨ Features
+## Features
 
-- **Always on Top**: Constantly floats above video players or browser web pages, remaining stably on top without being covered.
-- **ToolWindow Mode**: A pure experience, forcibly hiding the taskbar icon and Alt-Tab switching, with only the system tray standing guard.
-- **Lock and Click-through**: One-click lock mode. Once locked, all interactive elements within the mask disappear, and mouse events (clicks, scrolling, etc.) pass directly through to the underlying video, without affecting any of your operations.
-- **Multi-Mask Management**: Supports creating multiple mask layers simultaneously. In edit mode, you can right-click any mask to independently adjust its color and opacity, or click the independent `❌` in the top right corner to destroy it.
-- **Safe Boot Mechanism**: Automatically restores the previous position and size upon each startup, but intelligently unlocks all states, completely avoiding the "black screen panic" of a deadlocked startup.
-- **Flexible Local + Global Control**:
-  - **Local Operation**: Provides built-in floating `🔒` and `❌` buttons in the top right corner during edit mode.
-  - **Global Tray**: One-click "Toggle Visibility" and "Unlock All" from the system tray, saying goodbye to shortcut conflicts.
-- **Highly Customizable Appearance**: Supports stepless opacity adjustment from 10% to 100%, free setting of mask colors (pure black, translucent gray, etc.), and soft rounded corner transitions.
+- **Multiple masks:** Create, duplicate, configure, hide, recover, and delete independent masks.
+- **Precise edit controls:** Drag the mask background to move it and use all four edges or corners for native resizing.
+- **Safe click-through:** Locking removes edit controls and passes clicks and scrolling to the application underneath. Locked masks are recovered from the system tray.
+- **Persistent appearance and geometry:** Stable identifiers and a centralized Rust state service prevent multi-window updates from overwriting each other.
+- **Safe startup:** Restored masks always start visible and editable. Corrupt configuration and disconnected displays fall back to recoverable states.
+- **DPI-aware recovery:** Geometry is stored in monitor-relative logical pixels and clamped to a connected display on restoration.
+- **Tray control:** Create masks, explicitly show or hide all, unlock all, edit individual masks, and recover off-screen windows.
 
-## 📚 Documentation
+## Supported Platforms
 
-The functional boundaries and interaction logic of the software have been finalized through in-depth sandbox deduction. See details:
-- [Software Requirements Specification (SRS)](./docs/SRS.md) - **v0.3 Final Confirmed**
+- **Tier 1:** Windows 10/11 x64.
+- **Tier 1:** macOS 11+, Intel and Apple Silicon.
+- **Experimental:** Linux x64. Behavior depends on the desktop environment, system tray implementation, and X11/Wayland compositor.
 
-## 🛠️ Tech Stack
+## Download and Installation
 
-- **Supported Platforms**: Cross-platform support (Windows 10/11 & macOS 11+)
-- **Primary Framework**: **Tauri (Rust + Web)** - Extremely lightweight size (~10MB) and low memory footprint (~20MB)
-- **Alternative Framework**: **Python / PyQt6**
-- **Build Tools**: Vite / Cargo (Tauri)
+Download the latest package from the [GitHub Releases page](https://github.com/JakeJia/Useless-subtitle/releases).
 
-## 📥 Download and Installation
+- **Windows x64:** MSI, setup executable, or portable ZIP.
+- **macOS Apple Silicon:** aarch64 DMG or portable application ZIP.
+- **macOS Intel:** x64 DMG or portable application ZIP.
+- **Linux x64:** AppImage, DEB, or RPM.
 
-**No programming knowledge required, download and use:**
-1. Visit the [Releases page](../../releases) of this project to find the latest version.
-2. Download the corresponding file for your operating system:
-   - **Windows**: Download the `.msi` or `.exe` installer and double-click to install.
-   - **macOS**: Download the `.dmg`, double-click to open, and drag it into the "Applications" folder.
-   - **Linux**: Download the `.AppImage` or `.deb`.
+Current community builds may be unsigned. macOS Gatekeeper or Windows SmartScreen can therefore display a warning. Verify that the package was downloaded from this repository before choosing the platform’s manual-open option.
 
-## 💡 How to Use
+## How to Use
 
-1. After opening the software, a **translucent black mask** will appear on the desktop.
-2. **Move and Resize**: Use the mouse to drag it over the unwanted subtitle area, and drag the edges to adjust the size.
-3. **Right-click Settings**: **Right-click** on the mask to independently modify its color and opacity.
-4. **One-click Click-through**: Click the `🔒` icon in the top right corner of the mask. The mask border will disappear, and **mouse clicks will completely pass through the mask** (without affecting clicks on the underlying web page and video controls).
-5. **Global Tray Control**: If you need to disable click-through, create multiple masks, or completely exit the software, find the software icon in the **system tray (bottom right corner of the taskbar / Mac menu bar)** and right-click for global control.
+1. On first launch, one black 90%-opaque mask appears in the center of the primary display.
+2. Drag an empty part of the mask to move it. Drag an edge or corner to resize it.
+3. While editing, use the always-visible toolbar:
+   - `⋯` opens the mask menu.
+   - `🔒` locks the mask and enables complete mouse click-through.
+   - `×` deletes that mask without quitting the application.
+4. Right-clicking an editable mask opens the same menu as `⋯`.
+5. Once locked, the mask intentionally has no clickable controls. Open the system tray menu and choose **Show and Edit** for one mask or **Unlock All**.
+6. Closing every mask leaves the application running in the tray. Choose **New Mask** to create another or **Quit** to exit.
 
-## 🗺️ Roadmap
+## Development
 
-- [ ] **v0.1 MVP**: Implement a basic always-on-top borderless mask window, ensure it hides the taskbar icon as a ToolWindow, and support mouse dragging and corner/edge resizing.
-- [ ] **v0.2 Independent Control and Local Persistence**: Introduce a right-click menu within the mask for independent color and opacity adjustment; implement real-time configuration saving to local JSON and safe reloading; tray creation/closing of multiple masks.
-- [ ] **v0.3 Lock and Click-through Interaction**: Implement local floating `🔒`/`❌` buttons on the mask; connect underlying OS APIs to achieve pure mouse click-through, and implement global unlocking via the tray.
-- [ ] **v1.0 Cross-platform Official Release**: Optimize the always-on-top experience in web/video full-screen mode and multi-monitor DPI scaling mapping, and release Windows and macOS installation/portable packages.
+Requirements: Node.js 22, Rust 1.97.1, and the platform dependencies required by Tauri 2.
 
-## 📄 License
+```bash
+npm ci
+npm run check
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
+cargo test --manifest-path src-tauri/Cargo.toml --locked
+npm run tauri build
+```
 
-[MIT License](LICENSE)
+GitHub Actions performs frontend checks, Rust formatting/lint/tests, and package builds for Windows, macOS Intel, macOS Apple Silicon, and Linux. Branch builds never publish a release; publishing requires a `v*` tag.
+
+## Documentation
+
+- [Software Requirements Specification](./docs/SRS.md) — v0.3 implementation baseline for v0.1.5.
+- [Historical Implementation Plan](./docs/implement_plan.md) — archived description of the original four-sprint implementation.
+
+## Current Roadmap
+
+- [x] Cross-platform package automation.
+- [x] Stable multi-mask state and persistence.
+- [x] Native move and eight-direction resize interactions.
+- [x] Transactional click-through and tray recovery.
+- [x] Monitor/DPI-aware restoration and off-screen recovery.
+- [ ] Platform code signing and macOS notarization.
+- [ ] Optional profiles and automatic updates.
+
+## License
+
+[MIT License](./LICENSE)

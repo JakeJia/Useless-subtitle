@@ -107,26 +107,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-
-type ResizeDirection =
-  | 'East'
-  | 'North'
-  | 'NorthEast'
-  | 'NorthWest'
-  | 'South'
-  | 'SouthEast'
-  | 'SouthWest'
-  | 'West';
-
-interface MaskViewState {
-  id: string;
-  name: string;
-  color: string;
-  opacity: number;
-  locked: boolean;
-  visible: boolean;
-  trayReady: boolean;
-}
+import { maskColorToRgba, resizeHandles, type MaskViewState, type ResizeDirection } from './mask';
 
 const appWindow = getCurrentWindow();
 const isSettingsWindow = new URLSearchParams(window.location.search).get('view') === 'settings';
@@ -138,25 +119,10 @@ const busy = ref(false);
 const errorMessage = ref('');
 const colorPresets = ['#000000', '#FFFFFF', '#555555', '#1D4ED8', '#B91C1C'];
 
-const resizeHandles: Array<{ className: string; direction: ResizeDirection }> = [
-  { className: 'north', direction: 'North' },
-  { className: 'south', direction: 'South' },
-  { className: 'west', direction: 'West' },
-  { className: 'east', direction: 'East' },
-  { className: 'north-west', direction: 'NorthWest' },
-  { className: 'north-east', direction: 'NorthEast' },
-  { className: 'south-west', direction: 'SouthWest' },
-  { className: 'south-east', direction: 'SouthEast' },
-];
-
 const maskBackground = computed(() => {
   const state = maskState.value;
   if (!state) return 'rgba(0, 0, 0, 0.9)';
-  const hex = state.color.replace('#', '');
-  const red = Number.parseInt(hex.slice(0, 2), 16);
-  const green = Number.parseInt(hex.slice(2, 4), 16);
-  const blue = Number.parseInt(hex.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${state.opacity / 100})`;
+  return maskColorToRgba(state.color, state.opacity);
 });
 
 let unlistenMask: UnlistenFn | undefined;
