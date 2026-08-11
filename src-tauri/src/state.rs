@@ -21,6 +21,9 @@ enum SaveMessage {
     Flush(Sender<Result<(), String>>),
 }
 
+const SAVE_ATTEMPTS: usize = 3;
+const SAVE_RETRY_DELAY: Duration = Duration::from_millis(100);
+
 struct SharedState {
     config: Mutex<AppConfig>,
     runtime: Mutex<HashMap<String, RuntimeMaskState>>,
@@ -226,12 +229,12 @@ fn spawn_save_worker(shared: Arc<SharedState>, receiver: Receiver<SaveMessage>) 
                 match receiver.recv_timeout(Duration::from_millis(250)) {
                     Ok(SaveMessage::Schedule) => continue,
                     Ok(SaveMessage::Flush(reply)) => {
-                        let result = save_snapshot(&shared);
+                        let result = save_snapshot_with_retry(&shared);
                         let _ = reply.send(result);
                         break;
                     }
                     Err(RecvTimeoutError::Timeout) => {
-                        if let Err(error) = save_snapshot(&shared) {
+                        if let Err(error) = save_snapshot_with_retry(&shared) {
                             eprintln!("failed to save mask state: {error}");
                         }
                         break;
@@ -240,7 +243,7 @@ fn spawn_save_worker(shared: Arc<SharedState>, receiver: Receiver<SaveMessage>) 
                 }
             },
             Ok(SaveMessage::Flush(reply)) => {
-                let _ = reply.send(save_snapshot(&shared));
+                let _ = reply.send(save_snapshot_with_retry(&shared));
             }
             Err(_) => return,
         }
@@ -250,4 +253,76 @@ fn spawn_save_worker(shared: Arc<SharedState>, receiver: Receiver<SaveMessage>) 
 fn save_snapshot(shared: &SharedState) -> Result<(), String> {
     let snapshot = shared.config.lock().unwrap().clone();
     persistence::save(&shared.config_path, &snapshot)
+}
+
+fn save_snapshot_with_retry(shared: &SharedState) -> Result<(), String> {
+    retry_operation(|| save_snapshot(shared), SAVE_ATTEMPTS, SAVE_RETRY_DELAY)
+}
+
+fn retry_operation<F>(
+    mut operation: F,
+    attempts: usize,
+    retry_delay: Duration,
+) -> Result<(), String>
+where
+    F: FnMut() -> Result<(), String>,
+{
+    debug_assert!(attempts > 0);
+    for attempt in 1..=attempts {
+        match operation() {
+            Ok(()) => return Ok(()),
+            Err(error) if attempt < attempts => {
+                eprintln!("mask state save attempt {attempt} failed: {error}; retrying");
+                std::thread::sleep(retry_delay);
+            }
+            Err(error) => {
+                return Err(format!(
+                    "mask state save failed after {attempts} attempts: {error}"
+                ));
+            }
+        }
+    }
+    Err("mask state save was not attempted".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn retries_transient_save_failures() {
+        let mut calls = 0;
+        let result = retry_operation(
+            || {
+                calls += 1;
+                if calls < 3 {
+                    Err("temporary failure".to_string())
+                } else {
+                    Ok(())
+                }
+            },
+            3,
+            Duration::ZERO,
+        );
+
+        assert!(result.is_ok());
+        assert_eq!(calls, 3);
+    }
+
+    #[test]
+    fn reports_exhausted_save_retries() {
+        let mut calls = 0;
+        let error = retry_operation(
+            || {
+                calls += 1;
+                Err("persistent failure".to_string())
+            },
+            3,
+            Duration::ZERO,
+        )
+        .unwrap_err();
+
+        assert_eq!(calls, 3);
+        assert!(error.contains("after 3 attempts"));
+    }
 }
