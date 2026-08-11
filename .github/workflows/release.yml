@@ -1,81 +1,172 @@
-name: 'Release Automation'
+name: Release Automation
 
 on:
   push:
+    branches:
+      - main
+      - 'fix/**'
     tags:
-      - 'v*' # Only trigger compilation when pushing tags starting with v, e.g., v0.1.0
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  release:
+  build:
+    name: Build (${{ matrix.artifact }})
     permissions:
-      contents: write # Allows creating releases and uploading assets
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        # Run compilation on macOS, Ubuntu, and Windows respectively
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        include:
+          - platform: macos-15
+            artifact: macos-aarch64
+            rust_targets: aarch64-apple-darwin
+            tauri_args: --verbose --target aarch64-apple-darwin --bundles app,dmg
+            target_dir: src-tauri/target/aarch64-apple-darwin/release
+          - platform: macos-15-intel
+            artifact: macos-x64
+            rust_targets: x86_64-apple-darwin
+            tauri_args: --verbose --target x86_64-apple-darwin --bundles app,dmg
+            target_dir: src-tauri/target/x86_64-apple-darwin/release
+          - platform: ubuntu-22.04
+            artifact: linux-x64
+            rust_targets: ''
+            tauri_args: --verbose --bundles deb,appimage,rpm
+            target_dir: src-tauri/target/release
+          - platform: windows-latest
+            artifact: windows-x64
+            rust_targets: ''
+            tauri_args: --verbose --bundles nsis,msi
+            target_dir: src-tauri/target/release
 
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
+          cache: npm
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.97.1
+        with:
+          targets: ${{ matrix.rust_targets }}
 
-      - name: Install Linux dependencies (Ubuntu only)
+      - name: Show macOS build environment
+        if: startsWith(matrix.platform, 'macos-')
+        run: |
+          uname -m
+          sw_vers
+          xcodebuild -version
+          rustc --version --verbose
+          node --version
+          npm --version
+
+      - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build and Create Release
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check macOS Rust target
+        if: startsWith(matrix.platform, 'macos-')
+        run: cargo check --manifest-path src-tauri/Cargo.toml --locked --target ${{ matrix.rust_targets }}
+
+      - name: Build Tauri bundles
+        uses: tauri-apps/tauri-action@v1
         with:
-          tagName: ${{ github.ref_name }} # Use the current tag name
-          releaseName: 'Useless Subtitle ${{ github.ref_name }}'
-          releaseBody: |
-            ## 🎉 Useless Subtitle ${{ github.ref_name }} Released!
+          args: ${{ matrix.tauri_args }}
 
-            A minimalist, lightweight desktop mask overlay tool to block unwanted subtitles.
+      - name: Package macOS portable application
+        if: startsWith(matrix.platform, 'macos-')
+        run: >-
+          ditto -c -k --sequesterRsrc --keepParent
+          "${{ matrix.target_dir }}/bundle/macos/Useless Subtitle.app"
+          "Useless-Subtitle_${{ matrix.artifact }}_Portable.zip"
 
-            ### 🚀 Portable / No-Installation Standalone Packages (免安装绿色版)
-            - **Windows (Portable)**: Download `Useless-Subtitle_Windows_x64_Portable.zip`, extract and double-click `useless-subtitle.exe` to run immediately!
-            - **macOS**: Download `.dmg` or `Useless-Subtitle_macOS_Portable.zip`, open and run directly.
-            - **Linux**: Download `.AppImage`, grant execute permissions (`chmod +x`), and double-click to run!
-
-            ### 📦 Standard Installers
-            - **Windows**: `.msi` / `_setup.exe`
-            - **Linux**: `.deb`
-          releaseDraft: false
-          prerelease: false
-
-      # Prepare Portable ZIP for Windows
-      - name: Package Windows Portable Executable
+      - name: Package Windows portable executable
         if: matrix.platform == 'windows-latest'
         shell: bash
         run: |
           mkdir -p portable
-          cp src-tauri/target/release/useless-subtitle.exe portable/
-          cd portable
-          7z a ../Useless-Subtitle_Windows_x64_Portable.zip useless-subtitle.exe
+          cp "${{ matrix.target_dir }}/useless-subtitle.exe" portable/
+          7z a Useless-Subtitle_Windows_x64_Portable.zip ./portable/useless-subtitle.exe
 
-      # Upload Windows Portable ZIP to GitHub Release
-      - name: Upload Windows Portable Asset
-        if: matrix.platform == 'windows-latest'
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload macOS build artifacts
+        if: startsWith(matrix.platform, 'macos-')
+        uses: actions/upload-artifact@v7
         with:
-          tag_name: ${{ github.ref_name }}
-          files: Useless-Subtitle_Windows_x64_Portable.zip
+          name: release-${{ matrix.artifact }}
+          path: |
+            ${{ matrix.target_dir }}/bundle/dmg/*.dmg
+            Useless-Subtitle_${{ matrix.artifact }}_Portable.zip
+          if-no-files-found: error
+
+      - name: Upload Linux build artifacts
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.artifact }}
+          path: |
+            ${{ matrix.target_dir }}/bundle/deb/*.deb
+            ${{ matrix.target_dir }}/bundle/appimage/*.AppImage
+            ${{ matrix.target_dir }}/bundle/rpm/*.rpm
+          if-no-files-found: error
+
+      - name: Upload Windows build artifacts
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.artifact }}
+          path: |
+            ${{ matrix.target_dir }}/bundle/msi/*.msi
+            ${{ matrix.target_dir }}/bundle/nsis/*-setup.exe
+            Useless-Subtitle_Windows_x64_Portable.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: release-artifacts
+
+      - name: List release assets
+        run: find release-artifacts -type f -print
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: Useless Subtitle ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: release-artifacts/**/*
+          body: |
+            ## Useless Subtitle ${{ github.ref_name }}
+
+            A minimalist desktop mask overlay tool for hiding unwanted subtitles.
+
+            ### Portable packages
+            - **Windows x64**: Download `Useless-Subtitle_Windows_x64_Portable.zip`.
+            - **macOS Apple Silicon**: Download the `macos-aarch64` DMG or portable ZIP.
+            - **macOS Intel**: Download the `macos-x64` DMG or portable ZIP.
+            - **Linux x64**: Download the AppImage package.
+
+            ### Installers
+            - **Windows x64**: MSI or setup executable.
+            - **macOS**: DMG for Apple Silicon or Intel.
+            - **Linux x64**: DEB or RPM.
