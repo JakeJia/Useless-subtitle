@@ -4,11 +4,13 @@
 
 > **Product:** Useless Subtitle
 >
-> **Document version:** v0.3
+> **Document version:** v0.4
 >
-> **Status:** Approved implementation baseline for v0.1.5
+> **Status:** Implemented for v0.1.6; automated and Linux checks passed, Windows/macOS interaction validation pending
 >
-> **Last updated:** 2026-08-11
+> **Implementation baseline:** v0.1.6, following v0.1.5
+>
+> **Last updated:** 2026-10-14
 >
 > **Source of truth:** This document and its Chinese translation define the same requirements. A behavior is release-ready only when both documents and the implementation agree.
 
@@ -16,7 +18,11 @@
 
 Useless Subtitle is a lightweight desktop utility that places one or more configurable mask windows above video players or browser content. Its primary use is covering unwanted hardcoded subtitles while preserving access to the controls of the application underneath.
 
-The v0.1.5 scope includes mask lifecycle management, appearance controls, native dragging and resizing, safe click-through locking, system-tray recovery, multi-mask persistence, and monitor/DPI-aware restoration.
+The scope retains the v0.1.5 baseline: mask lifecycle management, appearance controls, native dragging and resizing, safe click-through locking, system-tray recovery, multi-mask persistence, and monitor/DPI-aware restoration.
+
+Revision v0.4 adds three requirements: create one default mask when the validated startup collection is empty, use 100% opacity for new default masks, and remove the visible mask border and edge shadow. These changes are implemented for v0.1.6. The [startup and appearance development plan](./startup-appearance-plan.md) records stage reviews, tests, and remaining platform checks. The README files describe the updated implementation.
+
+All three requirements apply across supported platforms. The reported behavior was observed on Windows; macOS and Linux behavior remains unverified. Shared code and successful package builds do not establish interactive validation on those platforms.
 
 ### 1.1 Supported Platforms
 
@@ -45,32 +51,33 @@ Each persisted mask has a stable identifier, name, appearance, and geometry. Run
 
 Locked and hidden states are runtime safety states and are not restored after application restart. Every restored mask starts visible and in edit mode.
 
-The application may contain zero masks. Closing the last mask does not quit the application; the tray remains available. A default mask is created only when no valid application configuration has ever been initialized.
+The running application may contain zero masks. Closing the last mask does not quit the application; the tray remains available, and no replacement mask is created during that session. At each application start, configuration loading, recovery, and validation run first. A nonempty mask collection is restored without adding a default mask. An empty collection causes exactly one default mask to be created and persisted, including when the saved configuration was already initialized.
 
 ## 3. Functional Requirements
 
 ### 3.1 Mask Creation and Lifecycle
 
-- **FR-MASK-001:** First launch shall create one visible, editable mask centered on the primary display with a default logical size of 600 × 120.
+- **FR-MASK-001:** At each application start, an empty mask collection after configuration loading, recovery, and validation shall cause exactly one visible, editable default mask to be created and persisted, regardless of the saved initialization flag. It shall be centered on the primary display with a default logical size of 600 × 120, subject to display clamping, and use the appearance defined in FR-APP-002. A nonempty collection shall restore its saved masks without adding a default mask.
 - **FR-MASK-002:** “New Mask” shall create a visible, editable mask with a stable UUID-backed identifier and persist it immediately.
 - **FR-MASK-003:** New masks shall use a cascaded position on the active or primary display and shall be clamped to its work area.
 - **FR-MASK-004:** A mask may be duplicated, including its appearance and size, but the duplicate shall receive a new identifier and a non-overlapping cascaded position.
 - **FR-MASK-005:** Closing a mask shall remove its persisted record and close its window. Persistence failures shall not leave an unresponsive close control; failures shall be reported and retried by the application state service.
-- **FR-MASK-006:** Deleting the final mask shall leave a tray-only application. Restarting an initialized empty configuration shall not recreate a mask automatically.
+- **FR-MASK-006:** Deleting the final mask shall persist an empty collection and leave a tray-only application for the rest of the session. The next application start shall create one default mask as specified in FR-MASK-001.
 - **FR-MASK-007:** Window creation failures shall not terminate the process. Invalid entries shall be skipped and reported while valid masks continue to load.
 
 ### 3.2 Appearance
 
 - **FR-APP-001:** Each mask shall independently store a six-digit `#RRGGBB` color and an integer opacity from 10 through 100.
-- **FR-APP-002:** Default appearance shall be `#000000` at 90% opacity.
+- **FR-APP-002:** Default appearance shall be `#000000` at 100% opacity. This default shall apply to first launch, empty-collection startup, and ordinary New Mask creation. Frontend initial values and appearance defaults used when legacy data has no saved value shall agree with this default.
 - **FR-APP-003:** Opacity controls shall use 10% increments. Documentation shall use “opacity” consistently; 100% means fully opaque.
 - **FR-APP-004:** Appearance changes shall be previewed immediately and persisted through the centralized state service.
-- **FR-APP-005:** The edit-mode mask shall show a subtle border and rounded corners. Locked mode shall hide borders and controls.
+- **FR-APP-005:** The colored mask surface shall have no visible border, outline, or edge shadow in either edit or locked mode. Rounded corners may remain. The edit toolbar shall remain visible in edit mode, and locked mode shall hide edit controls. This rule applies to the mask surface, not to the borders of toolbar or settings controls.
+- **FR-APP-006:** Restoring an existing mask shall preserve its valid saved color and opacity, including values below 100%. Duplicating a mask shall inherit the source appearance as specified in FR-MASK-004. Changing the default shall not rewrite saved appearance values.
 
 ### 3.3 Pointer and Click Behavior
 
 - **FR-INPUT-001:** In edit mode, primary-button drag on the mask background shall move the window.
-- **FR-INPUT-002:** Eight resize hit zones shall invoke the matching native resize direction: North, South, East, West, NorthEast, NorthWest, SouthEast, and SouthWest.
+- **FR-INPUT-002:** Eight transparent resize hit zones shall invoke the matching native resize direction: North, South, East, West, NorthEast, NorthWest, SouthEast, and SouthWest. Removing the visible border shall not remove or reduce these hit zones or their directional cursor feedback.
 - **FR-INPUT-003:** Resize and toolbar hit zones shall never initiate window movement.
 - **FR-INPUT-004:** A background click without movement shall only activate the mask. Double-click shall not maximize or lock the mask.
 - **FR-INPUT-005:** Right-click and the local settings button shall open the same mask menu.
@@ -86,7 +93,7 @@ The application may contain zero masks. Closing the last mask does not quit the 
 - **FR-LOCK-004:** A failed native click-through transition shall leave or return the mask to edit mode and display a recoverable error.
 - **FR-LOCK-005:** Unlocking shall disable pointer pass-through before showing edit controls.
 - **FR-LOCK-006:** The tray shall provide “Unlock All” and a per-mask “Show and Edit” recovery action.
-- **FR-LOCK-007:** No global keyboard shortcut is required for v0.1.5.
+- **FR-LOCK-007:** No global keyboard shortcut is required within this scope.
 - **FR-LOCK-008:** Lock state shall not be persisted; every application start shall be safe and editable.
 
 ### 3.5 System Tray
@@ -113,7 +120,7 @@ The application may contain zero masks. Closing the last mask does not quit the 
 - **FR-PERSIST-002:** Configuration shall contain a schema version and stable mask identifiers.
 - **FR-PERSIST-003:** State writes shall be serialized. Geometry events shall be debounced, and application exit shall flush pending changes.
 - **FR-PERSIST-004:** Configuration writes shall use an atomic or equivalently crash-safe strategy with a recoverable last-known-good copy.
-- **FR-PERSIST-005:** Missing configuration shall produce first-launch defaults. Corrupt configuration shall be preserved for diagnosis and replaced with a safe valid configuration.
+- **FR-PERSIST-005:** Missing configuration shall produce first-launch defaults, subject to existing legacy migration. Corrupt configuration shall be preserved for diagnosis and replaced with a safe valid configuration, recovering a valid backup where available. After loading, recovery, migration where applicable, and validation, the resulting collection shall follow FR-MASK-001: restore a nonempty collection or create and persist one default mask for an empty collection. Existing valid appearance values shall be preserved as specified in FR-APP-006.
 - **FR-PERSIST-006:** Color, opacity, dimensions, identifiers, and configuration version shall be validated before use.
 - **FR-PERSIST-007:** A failed mask record shall not prevent other valid masks or the tray from starting.
 
@@ -142,13 +149,13 @@ The application may contain zero masks. Closing the last mask does not quit the 
 - **NFR-004 Performance:** Geometry persistence shall not perform a disk write for every native move event. Idle CPU usage shall be measured on release builds and reported rather than described as “near zero.”
 - **NFR-005 Resource measurement:** Release validation shall record memory for one, five, and ten masks so requirements reflect the multi-webview architecture.
 - **NFR-006 Accessibility:** Icon-only buttons shall expose accessible names and tooltips. Pointer hit targets shall remain usable at the minimum mask size.
-- **NFR-007 Localization:** English and Chinese documentation shall remain structurally synchronized. Application UI localization is outside v0.1.5 unless implemented consistently.
+- **NFR-007 Localization:** English and Chinese documentation shall remain structurally synchronized. Application UI localization is outside this scope unless implemented consistently.
 - **NFR-008 Release safety:** Branch and pull-request workflows may build artifacts, but only a `v*` tag may publish a GitHub Release.
 - **NFR-009 Distribution:** macOS and Windows signing status shall be stated accurately. Unsigned development artifacts shall not be described as warning-free installation packages.
 
 ## 5. Acceptance and Release Criteria
 
-v0.1.5 is eligible for release only when:
+A software release adopting SRS v0.4 is eligible for release only when:
 
 1. Frontend type checking and production build pass.
 2. Rust formatting, linting, unit tests, and locked dependency checks pass.
@@ -157,10 +164,25 @@ v0.1.5 is eligible for release only when:
 5. GitHub Actions builds Windows x64, macOS Intel, macOS Apple Silicon, and Linux x64 successfully.
 6. A pull request is reviewed and merged into `main`.
 7. The same `main` commit passes the complete workflow without publishing a release.
-8. Tag `v0.1.5` is created from the verified `main` commit.
+8. The assigned software version tag (`v<release-version>`) is created from the verified `main` commit. SRS v0.4 is a document version, not a software release tag.
 9. The tag workflow publishes the expected release artifacts and reports success.
 
-## 6. Out of Scope for v0.1.5
+The following acceptance scenarios shall also pass. The development plan records completed automated checks, Linux interaction checks, and pending Windows/macOS interaction validation separately.
+
+| ID | Scenario | Expected result |
+|---|---|---|
+| AC-START-001 | Start with no configuration or an initialized empty collection. | Exactly one visible, editable black mask appears at 100% opacity, centered on the primary display at 600 × 120 logical pixels subject to display clamping; its record is saved. |
+| AC-START-002 | Delete every mask, quit normally, and restart; then quit and restart again. | The running zero-mask session remains available through the tray. The first restart creates one mask; the second restores that same mask without adding another. |
+| AC-START-003 | Save multiple masks with custom colors, opacity, sizes, and positions, including hidden or locked runtime states; restart. | The same identifiers and number of masks are restored with their valid saved appearance and recoverable geometry. All start visible and editable. |
+| AC-START-004 | Load a corrupt configuration with a valid backup, or recover to an empty validated collection. | A nonempty recovered collection is restored without an extra mask; an empty result creates and saves one default mask. The corrupt file is preserved for diagnosis. |
+| AC-APP-001 | Create an ordinary new mask and duplicate an existing mask at 40% opacity. | The new mask is black at 100%; the duplicate inherits its source color and 40% opacity. |
+| AC-APP-002 | Restore a saved 90%-opaque mask, or migrate legacy data with and without an opacity value. | Valid saved values remain unchanged; a missing legacy opacity value uses 100%. The settings value agrees with the applied appearance. |
+| AC-APP-003 | Inspect black, white, and colored masks at different opacity settings in edit and locked modes. | No visible mask border, dashed stroke, outline, or edge shadow appears. Rounded corners may remain; edit controls appear only in edit mode. |
+| AC-INPUT-001 | Move a borderless mask, resize using all eight directions, and operate the toolbar at 96 × 32. | Transparent hit zones and directional cursors work; resize and toolbar actions do not initiate window movement. Lock, pointer pass-through, and tray recovery still work. |
+
+Windows is the primary manual validation platform for this revision. macOS Intel, macOS Apple Silicon, and Linux shall have separate recorded results or an explicit pending status. Build success shall not be reported as an interaction-test pass.
+
+## 6. Out of Scope
 
 - Global keyboard shortcuts.
 - Cloud synchronization.
@@ -168,3 +190,10 @@ v0.1.5 is eligible for release only when:
 - Per-video profiles.
 - Automatic application updates.
 - Guaranteed overlay above protected system interfaces or exclusive full-screen content.
+
+## 7. Revision History
+
+| Document version | Date | Change |
+|---|---|---|
+| v0.4 | 2026-10-14 | Implemented Windows trial feedback for v0.1.6: create one default mask on empty startup, use 100% default opacity, and remove visible mask borders and edge shadows. Preserve saved appearance and duplicate inheritance. Automated and Linux checks passed; Windows/macOS interaction validation remains pending. |
+| v0.3 | 2026-08-11 | Established the v0.1.5 implementation baseline. |

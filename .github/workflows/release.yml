@@ -202,6 +202,14 @@ jobs:
 
             A minimalist desktop mask overlay tool for hiding unwanted subtitles.
 
+            ### Startup and appearance
+            - Launching with an empty saved collection creates one visible, editable default mask.
+            - New masks default to black at 100% opacity. Saved appearance and duplicate inheritance are preserved.
+            - Mask surfaces have no visible border or edge shadow; eight-direction resizing and edit controls remain available.
+
+            ### Validation
+            Automated checks and package builds cover Windows x64, macOS Intel, macOS Apple Silicon, and Linux x64. Interactive smoke tests were run on Linux X11; Windows and macOS interaction checks remain pending. Community packages are unsigned.
+
             ### Portable packages
             - **Windows x64**: Download `Useless-Subtitle_Windows_x64_Portable.zip`.
             - **macOS Apple Silicon**: Download the `macos-aarch64` DMG or portable ZIP.

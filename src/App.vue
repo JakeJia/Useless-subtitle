@@ -107,21 +107,21 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { maskColorToRgba, resizeHandles, type MaskViewState, type ResizeDirection } from './mask';
+import { defaultMaskAppearance, maskColorToRgba, resizeHandles, type MaskViewState, type ResizeDirection } from './mask';
 
 const appWindow = getCurrentWindow();
 const isSettingsWindow = new URLSearchParams(window.location.search).get('view') === 'settings';
 const maskState = ref<MaskViewState | null>(null);
 const settingsMask = ref<MaskViewState | null>(null);
-const settingsColor = ref('#000000');
-const settingsOpacity = ref(90);
+const settingsColor = ref<string>(defaultMaskAppearance.color);
+const settingsOpacity = ref<number>(defaultMaskAppearance.opacity);
 const busy = ref(false);
 const errorMessage = ref('');
 const colorPresets = ['#000000', '#FFFFFF', '#555555', '#1D4ED8', '#B91C1C'];
 
 const maskBackground = computed(() => {
   const state = maskState.value;
-  if (!state) return 'rgba(0, 0, 0, 0.9)';
+  if (!state) return maskColorToRgba(defaultMaskAppearance.color, defaultMaskAppearance.opacity);
   return maskColorToRgba(state.color, state.opacity);
 });
 
@@ -291,15 +291,8 @@ input {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px dashed rgba(255, 255, 255, 0.62);
   border-radius: 10px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
   user-select: none;
-}
-
-.mask-container.is-locked {
-  border: 0;
-  box-shadow: none;
 }
 
 .mask-toolbar {

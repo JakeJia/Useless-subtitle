@@ -13,16 +13,26 @@ pub const MASK_LABEL_PREFIX: &str = "mask-";
 pub const SETTINGS_LABEL: &str = "mask-settings";
 
 pub fn restore_or_initialize(app: &AppHandle, state: &AppState) -> Result<(), String> {
-    let config = state.config();
-    if !config.initialized && config.masks.is_empty() {
-        create_mask(app, state, None)?;
-        state.mark_initialized();
-        return Ok(());
-    }
+    restore_or_initialize_with(
+        state,
+        || create_mask(app, state, None).map(|_| ()),
+        |mask| build_mask_window(app, state, mask).map(|_| ()),
+    )
+}
 
-    for mask in config.masks {
-        if let Err(error) = build_mask_window(app, state, &mask) {
-            eprintln!("failed to restore {}: {error}", mask.name);
+fn restore_or_initialize_with(
+    state: &AppState,
+    create_default: impl FnOnce() -> Result<(), String>,
+    mut restore_mask: impl FnMut(&MaskConfig) -> Result<(), String>,
+) -> Result<(), String> {
+    let config = state.config();
+    if config.masks.is_empty() {
+        create_default()?;
+    } else {
+        for mask in config.masks {
+            if let Err(error) = restore_mask(&mask) {
+                eprintln!("failed to restore {}: {error}", mask.name);
+            }
         }
     }
     state.mark_initialized();
@@ -294,4 +304,169 @@ pub fn mask_window(app: &AppHandle, id: &str) -> Result<WebviewWindow, String> {
 #[allow(dead_code)]
 fn _physical_types_are_supported(position: PhysicalPosition<i32>, size: PhysicalSize<u32>) {
     let _ = (position, size);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        models::{AppConfig, MaskGeometry},
+        persistence,
+    };
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+    };
+
+    fn directory() -> PathBuf {
+        std::env::temp_dir().join(format!("mask-startup-{}", uuid::Uuid::new_v4()))
+    }
+
+    fn load_state(directory: &Path) -> AppState {
+        AppState::from_loaded(persistence::load_from_directory(directory).unwrap())
+    }
+
+    fn create_default(state: &AppState) -> Result<(), String> {
+        state.add_mask(MaskConfig::new(
+            state.config().next_name(),
+            MaskGeometry::default(),
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn empty_startup_persists_one_mask_independent_of_initialization() {
+        for initialized in [false, true] {
+            let directory = directory();
+            let path = directory.join("mask-state.json");
+            if initialized {
+                persistence::save(
+                    &path,
+                    &AppConfig {
+                        initialized,
+                        ..AppConfig::default()
+                    },
+                )
+                .unwrap();
+            }
+            let state = load_state(&directory);
+            restore_or_initialize_with(
+                &state,
+                || create_default(&state),
+                |_| panic!("empty startup must create a mask"),
+            )
+            .unwrap();
+            state.flush().unwrap();
+            let config = state.config();
+            assert!(config.initialized);
+            assert_eq!(config.masks.len(), 1);
+            drop(state);
+
+            let restarted = load_state(&directory);
+            let mut restored = Vec::new();
+            restore_or_initialize_with(
+                &restarted,
+                || panic!("saved mask must not be duplicated"),
+                |mask| {
+                    restored.push(mask.id.clone());
+                    Ok(())
+                },
+            )
+            .unwrap();
+            restarted.flush().unwrap();
+            assert_eq!(restored, vec![config.masks[0].id.clone()]);
+            assert_eq!(restarted.config(), config);
+            drop(restarted);
+            fs::remove_dir_all(directory).unwrap();
+        }
+    }
+
+    #[test]
+    fn deleting_the_last_mask_remains_empty_until_next_startup() {
+        let directory = directory();
+        let state = load_state(&directory);
+        restore_or_initialize_with(&state, || create_default(&state), |_| unreachable!()).unwrap();
+        let old_id = state.config().masks[0].id.clone();
+        assert!(state.remove_mask(&old_id));
+        state.flush().unwrap();
+        assert!(state.config().masks.is_empty());
+        assert!(persistence::load_from_directory(&directory)
+            .unwrap()
+            .config
+            .masks
+            .is_empty());
+        drop(state);
+
+        let restarted = load_state(&directory);
+        restore_or_initialize_with(
+            &restarted,
+            || create_default(&restarted),
+            |_| unreachable!(),
+        )
+        .unwrap();
+        restarted.flush().unwrap();
+        let saved = persistence::load_from_directory(&directory).unwrap().config;
+        assert_eq!(saved.masks.len(), 1);
+        assert_ne!(saved.masks[0].id, old_id);
+        drop(restarted);
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn nonempty_startup_preserves_masks_and_isolates_restore_failures() {
+        for initialized in [false, true] {
+            let directory = directory();
+            let mut config = AppConfig {
+                initialized,
+                masks: vec![
+                    MaskConfig::new("First".into(), MaskGeometry::default()),
+                    MaskConfig::new("Second".into(), MaskGeometry::default()),
+                ],
+                ..AppConfig::default()
+            };
+            config.masks[0].appearance.opacity = 90;
+            config.masks[1].appearance.color = "#112233".into();
+            config.masks[1].appearance.opacity = 40;
+            persistence::save(&directory.join("mask-state.json"), &config).unwrap();
+            let state = load_state(&directory);
+            let mut restored = Vec::new();
+            restore_or_initialize_with(
+                &state,
+                || panic!("nonempty startup must not create a default"),
+                |mask| {
+                    restored.push(mask.id.clone());
+                    if mask.id == config.masks[0].id {
+                        Err("window creation failed".into())
+                    } else {
+                        state.register_mask(&mask.id);
+                        Ok(())
+                    }
+                },
+            )
+            .unwrap();
+            state.flush().unwrap();
+            assert_eq!(
+                restored,
+                config
+                    .masks
+                    .iter()
+                    .map(|mask| mask.id.clone())
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(state.config().masks, config.masks);
+            assert_eq!(
+                persistence::load_from_directory(&directory)
+                    .unwrap()
+                    .config
+                    .masks,
+                config.masks
+            );
+            assert!(state.config().initialized);
+            assert!(state
+                .view(&config.masks[1].id)
+                .is_some_and(|view| view.visible && !view.locked));
+            drop(state);
+            fs::remove_dir_all(directory).unwrap();
+        }
+    }
 }
