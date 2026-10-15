@@ -8,6 +8,8 @@ export interface MaskViewState {
   trayReady: boolean;
 }
 
+export const defaultMaskAppearance = { color: '#000000', opacity: 100 } as const;
+
 export type ResizeDirection =
   | 'East'
   | 'North'

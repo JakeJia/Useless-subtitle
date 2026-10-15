@@ -42,6 +42,10 @@ pub struct AppState {
 impl AppState {
     pub fn load(app: &AppHandle) -> Result<Self, Box<dyn std::error::Error>> {
         let loaded = persistence::load(app).map_err(std::io::Error::other)?;
+        Ok(Self::from_loaded(loaded))
+    }
+
+    pub(crate) fn from_loaded(loaded: persistence::LoadedConfig) -> Self {
         let shared = Arc::new(SharedState {
             config: Mutex::new(loaded.config),
             runtime: Mutex::new(HashMap::new()),
@@ -60,7 +64,7 @@ impl AppState {
         if loaded.needs_save {
             state.schedule_save();
         }
-        Ok(state)
+        state
     }
 
     pub fn config(&self) -> AppConfig {

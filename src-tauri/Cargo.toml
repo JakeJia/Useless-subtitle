@@ -1,6 +1,6 @@
 [package]
 name = "useless-subtitle"
-version = "0.1.5"
+version = "0.1.6"
 description = "A desktop subtitle mask utility"
 authors = ["JakeJia"]
 edition = "2021"

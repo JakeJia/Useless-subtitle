@@ -33,15 +33,17 @@ Current community builds may be unsigned. macOS Gatekeeper or Windows SmartScree
 
 ## How to Use
 
-1. On first launch, one black 90%-opaque mask appears in the center of the primary display.
-2. Drag an empty part of the mask to move it. Drag an edge or corner to resize it.
+1. On launch, saved masks are restored visibly and in edit mode. If the saved collection is empty, one black, fully opaque mask appears in the center of the primary display.
+2. Drag an empty part of the mask to move it. Drag an edge or corner to resize it. Resize areas are invisible; the cursor indicates the resize direction.
 3. While editing, use the always-visible toolbar:
    - `⋯` opens the mask menu.
    - `🔒` locks the mask and enables complete mouse click-through.
    - `×` deletes that mask without quitting the application.
 4. Right-clicking an editable mask opens the same menu as `⋯`.
 5. Once locked, the mask intentionally has no clickable controls. Open the system tray menu and choose **Show and Edit** for one mask or **Unlock All**.
-6. Closing every mask leaves the application running in the tray. Choose **New Mask** to create another or **Quit** to exit.
+6. Closing every mask leaves the application running in the tray for that session. Choose **New Mask** to create another or **Quit** to exit. The next launch creates one default mask if the saved collection is still empty.
+
+New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. The mask surface has no visible border or edge shadow in either edit or locked mode.
 
 ## Development
 
@@ -60,7 +62,8 @@ GitHub Actions performs frontend checks, Rust formatting/lint/tests, and package
 
 ## Documentation
 
-- [Software Requirements Specification](./docs/SRS.md) — v0.3 implementation baseline for v0.1.5.
+- [Software Requirements Specification](./docs/SRS.md) — v0.4 requirements implemented for v0.1.6; platform validation status is recorded in the development plan.
+- [Startup and Appearance Development Plan](./docs/startup-appearance-plan.md) — implementation, stage reviews, tests, and remaining platform checks (Chinese).
 - [Historical Implementation Plan](./docs/implement_plan.md) — archived description of the original four-sprint implementation.
 
 ## Current Roadmap

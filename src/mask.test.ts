@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { maskColorToRgba, resizeHandles } from './mask';
+import { defaultMaskAppearance, maskColorToRgba, resizeHandles } from './mask';
 
 describe('resize handles', () => {
   it('maps every edge and corner to one unique native direction', () => {
@@ -11,6 +11,10 @@ describe('resize handles', () => {
 });
 
 describe('maskColorToRgba', () => {
+  it('renders the default appearance as fully opaque black', () => {
+    expect(maskColorToRgba(defaultMaskAppearance.color, defaultMaskAppearance.opacity)).toBe('rgba(0, 0, 0, 1)');
+  });
+
   it('converts a validated color and opacity', () => {
     expect(maskColorToRgba('#1D4ED8', 80)).toBe('rgba(29, 78, 216, 0.8)');
   });

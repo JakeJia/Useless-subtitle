@@ -21,6 +21,10 @@ pub fn load(app: &AppHandle) -> Result<LoadedConfig, String> {
         .path()
         .app_data_dir()
         .map_err(|error| error.to_string())?;
+    load_from_directory(&directory)
+}
+
+pub(crate) fn load_from_directory(directory: &Path) -> Result<LoadedConfig, String> {
     let path = directory.join(CONFIG_FILE_NAME);
     let backup_path = backup_path(&path);
 
@@ -155,7 +159,7 @@ fn migrate_legacy(path: &Path) -> Result<AppConfig, String> {
         mask.appearance.opacity = object
             .get("opacity")
             .and_then(|value| value.as_u64().or_else(|| value.as_str()?.parse().ok()))
-            .unwrap_or(90)
+            .unwrap_or(mask.appearance.opacity as u64)
             .clamp(10, 100) as u8;
         mask.validate();
         config.masks.push(mask);
@@ -233,5 +237,75 @@ mod tests {
         assert_eq!(config.masks[0].appearance.opacity, 80);
 
         let _ = fs::remove_dir_all(directory);
+    }
+
+    #[test]
+    fn recovers_valid_backup_before_applying_startup_defaults() {
+        let directory = std::env::temp_dir().join(format!("mask-backup-{}", uuid::Uuid::new_v4()));
+        let path = directory.join(CONFIG_FILE_NAME);
+        let config = AppConfig {
+            initialized: true,
+            masks: vec![MaskConfig::new(
+                "Saved mask".into(),
+                MaskGeometry::default(),
+            )],
+            ..AppConfig::default()
+        };
+        save(&path, &config).unwrap();
+        save(&path, &config).unwrap();
+        fs::write(&path, b"invalid JSON").unwrap();
+
+        let loaded = load_from_directory(&directory).unwrap();
+        assert_eq!(loaded.config, config);
+        assert!(loaded.needs_save);
+        assert_eq!(
+            fs::read(path.with_extension("corrupt.json")).unwrap(),
+            b"invalid JSON"
+        );
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn legacy_opacity_defaults_to_100_without_rewriting_saved_values() {
+        let directory =
+            std::env::temp_dir().join(format!("mask-legacy-default-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&directory).unwrap();
+        fs::write(
+            directory.join(LEGACY_FILE_NAME),
+            r##"{"mask_list":[{"color":"#112233"},{"opacity":90},{"opacity":"40"}]}"##,
+        )
+        .unwrap();
+
+        let loaded = load_from_directory(&directory).unwrap();
+        assert_eq!(loaded.config.masks[0].appearance.color, "#112233");
+        assert_eq!(
+            loaded
+                .config
+                .masks
+                .iter()
+                .map(|mask| mask.appearance.opacity)
+                .collect::<Vec<_>>(),
+            vec![100, 90, 40]
+        );
+        save(&loaded.path, &loaded.config).unwrap();
+        assert_eq!(
+            load_from_directory(&directory).unwrap().config,
+            loaded.config
+        );
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn corrupt_configuration_without_backup_returns_an_empty_collection() {
+        let directory = std::env::temp_dir().join(format!("mask-corrupt-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&directory).unwrap();
+        let path = directory.join(CONFIG_FILE_NAME);
+        fs::write(&path, b"invalid JSON").unwrap();
+
+        let loaded = load_from_directory(&directory).unwrap();
+        assert!(loaded.config.masks.is_empty());
+        assert!(loaded.needs_save);
+        assert!(path.with_extension("corrupt.json").exists());
+        fs::remove_dir_all(directory).unwrap();
     }
 }

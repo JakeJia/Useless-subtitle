@@ -96,7 +96,7 @@ impl Default for MaskAppearance {
     fn default() -> Self {
         Self {
             color: "#000000".to_string(),
-            opacity: 90,
+            opacity: 100,
         }
     }
 }
@@ -191,6 +191,13 @@ pub struct RuntimeMaskState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn new_masks_default_to_opaque_black() {
+        let mask = MaskConfig::new("New mask".into(), MaskGeometry::default());
+        assert_eq!(mask.appearance.color, "#000000");
+        assert_eq!(mask.appearance.opacity, 100);
+    }
 
     #[test]
     fn validates_appearance_values() {
