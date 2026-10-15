@@ -202,10 +202,15 @@ jobs:
 
             A minimalist desktop mask overlay tool for hiding unwanted subtitles.
 
+            ### Native mask-window shadow fix
+            - Disable native mask-window shadows when creating, duplicating, or restoring a mask.
+            - This addresses the remaining Windows frame stroke after v0.1.6 removed CSS borders and inset shadows.
+            - Preserve saved appearance and layout, transparent resize hit zones, and tray-based lock recovery.
+
             ### Startup and appearance
             - Launching with an empty saved collection creates one visible, editable default mask.
             - New masks default to black at 100% opacity. Saved appearance and duplicate inheritance are preserved.
-            - Mask surfaces have no visible border or edge shadow; eight-direction resizing and edit controls remain available.
+            - Eight-direction resizing, rounded mask corners, and edit controls remain available.
 
             ### Validation
             Automated checks and package builds cover Windows x64, macOS Intel, macOS Apple Silicon, and Linux x64. Interactive smoke tests were run on Linux X11; Windows and macOS interaction checks remain pending. Community packages are unsigned.

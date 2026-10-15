@@ -79,6 +79,8 @@ fn build_mask_window(
         .inner_size(mask.geometry.width_logical, mask.geometry.height_logical)
         .min_inner_size(MIN_WIDTH, MIN_HEIGHT)
         .decorations(false)
+        // Native shadows add a 1px border on undecorated Windows windows.
+        .shadow(false)
         .transparent(true)
         .always_on_top(true)
         .skip_taskbar(true)

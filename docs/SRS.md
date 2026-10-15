@@ -6,11 +6,11 @@
 >
 > **Document version:** v0.4
 >
-> **Status:** Implemented for v0.1.6; automated and Linux checks passed, Windows/macOS interaction validation pending
+> **Status:** Implemented through v0.1.7; automated and Linux checks passed, Windows/macOS interaction validation pending
 >
-> **Implementation baseline:** v0.1.6, following v0.1.5
+> **Implementation baseline:** v0.1.7, following v0.1.6
 >
-> **Last updated:** 2026-10-14
+> **Last updated:** 2026-10-14 (America/Phoenix)
 >
 > **Source of truth:** This document and its Chinese translation define the same requirements. A behavior is release-ready only when both documents and the implementation agree.
 
@@ -20,9 +20,9 @@ Useless Subtitle is a lightweight desktop utility that places one or more config
 
 The scope retains the v0.1.5 baseline: mask lifecycle management, appearance controls, native dragging and resizing, safe click-through locking, system-tray recovery, multi-mask persistence, and monitor/DPI-aware restoration.
 
-Revision v0.4 adds three requirements: create one default mask when the validated startup collection is empty, use 100% opacity for new default masks, and remove the visible mask border and edge shadow. These changes are implemented for v0.1.6. The [startup and appearance development plan](./startup-appearance-plan.md) records stage reviews, tests, and remaining platform checks. The README files describe the updated implementation.
+Revision v0.4 adds three requirements: create one default mask when the validated startup collection is empty, use 100% opacity for new default masks, and remove the visible mask border and edge shadow. v0.1.6 implements the startup/default-opacity changes and removes CSS borders and inset shadows. v0.1.7 also disables native mask-window shadows after Windows feedback identified a remaining frame stroke. The [native-shadow review](./native-shadow-review.md) records the correction, regression checks, and release process. The [startup and appearance development plan](./startup-appearance-plan.md) records the original implementation and release.
 
-All three requirements apply across supported platforms. The reported behavior was observed on Windows; macOS and Linux behavior remains unverified. Shared code and successful package builds do not establish interactive validation on those platforms.
+All three requirements apply across supported platforms. The reported behavior was observed on Windows. Limited Linux X11 interaction checks have passed; Windows/macOS interaction validation remains pending. Shared code and successful package builds do not establish interactive validation on those platforms.
 
 ### 1.1 Supported Platforms
 
@@ -71,7 +71,7 @@ The running application may contain zero masks. Closing the last mask does not q
 - **FR-APP-002:** Default appearance shall be `#000000` at 100% opacity. This default shall apply to first launch, empty-collection startup, and ordinary New Mask creation. Frontend initial values and appearance defaults used when legacy data has no saved value shall agree with this default.
 - **FR-APP-003:** Opacity controls shall use 10% increments. Documentation shall use “opacity” consistently; 100% means fully opaque.
 - **FR-APP-004:** Appearance changes shall be previewed immediately and persisted through the centralized state service.
-- **FR-APP-005:** The colored mask surface shall have no visible border, outline, or edge shadow in either edit or locked mode. Rounded corners may remain. The edit toolbar shall remain visible in edit mode, and locked mode shall hide edit controls. This rule applies to the mask surface, not to the borders of toolbar or settings controls.
+- **FR-APP-005:** The colored mask surface shall have no visible border, outline, or edge shadow in either edit or locked mode, including any native window shadow or frame stroke. Rounded corners may remain. The edit toolbar shall remain visible in edit mode, and locked mode shall hide edit controls. This rule applies to the mask surface, not to the borders of toolbar or settings controls.
 - **FR-APP-006:** Restoring an existing mask shall preserve its valid saved color and opacity, including values below 100%. Duplicating a mask shall inherit the source appearance as specified in FR-MASK-004. Changing the default shall not rewrite saved appearance values.
 
 ### 3.3 Pointer and Click Behavior
@@ -177,7 +177,7 @@ The following acceptance scenarios shall also pass. The development plan records
 | AC-START-004 | Load a corrupt configuration with a valid backup, or recover to an empty validated collection. | A nonempty recovered collection is restored without an extra mask; an empty result creates and saves one default mask. The corrupt file is preserved for diagnosis. |
 | AC-APP-001 | Create an ordinary new mask and duplicate an existing mask at 40% opacity. | The new mask is black at 100%; the duplicate inherits its source color and 40% opacity. |
 | AC-APP-002 | Restore a saved 90%-opaque mask, or migrate legacy data with and without an opacity value. | Valid saved values remain unchanged; a missing legacy opacity value uses 100%. The settings value agrees with the applied appearance. |
-| AC-APP-003 | Inspect black, white, and colored masks at different opacity settings in edit and locked modes. | No visible mask border, dashed stroke, outline, or edge shadow appears. Rounded corners may remain; edit controls appear only in edit mode. |
+| AC-APP-003 | Inspect black, white, and colored masks at different opacity settings in edit and locked modes; on Windows include 100%, 125%, 150%, and 200% display scaling and restored masks. | No visible mask border, dashed stroke, outline, native frame stroke, or edge shadow appears along straight edges. Rounded corners may remain; edit controls appear only in edit mode. |
 | AC-INPUT-001 | Move a borderless mask, resize using all eight directions, and operate the toolbar at 96 × 32. | Transparent hit zones and directional cursors work; resize and toolbar actions do not initiate window movement. Lock, pointer pass-through, and tray recovery still work. |
 
 Windows is the primary manual validation platform for this revision. macOS Intel, macOS Apple Silicon, and Linux shall have separate recorded results or an explicit pending status. Build success shall not be reported as an interaction-test pass.
@@ -195,5 +195,5 @@ Windows is the primary manual validation platform for this revision. macOS Intel
 
 | Document version | Date | Change |
 |---|---|---|
-| v0.4 | 2026-10-14 | Implemented Windows trial feedback for v0.1.6: create one default mask on empty startup, use 100% default opacity, and remove visible mask borders and edge shadows. Preserve saved appearance and duplicate inheritance. Automated and Linux checks passed; Windows/macOS interaction validation remains pending. |
+| v0.4 | 2026-10-14 | v0.1.6 delivered empty-startup defaults, 100% default opacity, and CSS border/shadow removal. v0.1.7 disables native mask-window shadows. Saved appearance and duplicate inheritance remain unchanged. Automated and Linux checks passed; Windows/macOS interaction validation remains pending. |
 | v0.3 | 2026-08-11 | Established the v0.1.5 implementation baseline. |
