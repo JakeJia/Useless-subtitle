@@ -43,7 +43,7 @@ Current community builds may be unsigned. macOS Gatekeeper or Windows SmartScree
 5. Once locked, the mask intentionally has no clickable controls. Open the system tray menu and choose **Show and Edit** for one mask or **Unlock All**.
 6. Closing every mask leaves the application running in the tray for that session. Choose **New Mask** to create another or **Quit** to exit. The next launch creates one default mask if the saved collection is still empty.
 
-New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. v0.1.6 removes CSS mask borders and inset shadows. The [native-shadow correction](./docs/native-shadow-review.md) is included in unpublished 0.1.7 test builds from [PR #3](https://github.com/JakeJia/Useless-subtitle/pull/3); the current published release remains v0.1.6.
+New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. v0.1.7 also disables native mask-window shadows to address the remaining Windows frame stroke after the CSS border removal in v0.1.6. The [native-shadow review](./docs/native-shadow-review.md) records regression results and remaining Windows/macOS interaction checks.
 
 ## Development
 
@@ -62,7 +62,7 @@ GitHub Actions performs frontend checks, Rust formatting/lint/tests, and package
 
 ## Documentation
 
-- [Software Requirements Specification](./docs/SRS.md) — v0.4 requirements, v0.1.6 delivery, and native-shadow follow-up validation.
+- [Software Requirements Specification](./docs/SRS.md) — v0.4 requirements, v0.1.6 startup changes, and the v0.1.7 native-shadow correction.
 - [Startup and Appearance Development Plan](./docs/startup-appearance-plan.md) — implementation, stage reviews, tests, and remaining platform checks (Chinese).
 - [Historical Implementation Plan](./docs/implement_plan.md) — archived description of the original four-sprint implementation.
 

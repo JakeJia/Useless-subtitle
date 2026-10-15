@@ -178,4 +178,4 @@ Linux 交互通过 X11 指针事件和应用实际导出的 D-Bus 托盘菜单�
 
 v0.1.6 发布后，用户仍观察到灰色细边。复查确认上一轮只移除了 CSS 边框与内阴影，未关闭原生窗口阴影。Tauri 的 Windows 无装饰窗口默认阴影会引入额外框线，因此上一轮 Linux 检查不能证明 Windows 已满足 FR-APP-005。
 
-补充修复仅在遮罩窗口创建时设置 `shadow(false)`。依赖路径 review、回归结果、Windows 几何及交互待验项目见[原生阴影修复 review](./native-shadow-review.md)。本节修正实现状态，不改变三项需求或配置格式。
+补充修复仅在遮罩窗口创建时设置 `shadow(false)`，纳入 v0.1.7。依赖路径 review、回归结果、Windows 几何及交互待验项目和该版本发布流程见[原生阴影修复 review](./native-shadow-review.md)。本节修正实现状态，不改变三项需求或配置格式。

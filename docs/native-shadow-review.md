@@ -4,7 +4,7 @@
 >
 > **基线：** v0.1.6 / `4c61451b7dd60c7222f5c182c7cd4b300e3fd65d`
 >
-> **构建版本：** 0.1.7，未发布；通过 [PR #3](https://github.com/JakeJia/Useless-subtitle/pull/3) 的 CI 产物分发测试包
+> **软件版本：** 0.1.7；[PR #3](https://github.com/JakeJia/Useless-subtitle/pull/3) 合并后从主分支创建 `v0.1.7` tag，通过既有工作流发布
 >
 > **状态：** 最小修复已实现；本地自动检查通过，原生回归及四平台 CI 结果见下文；Windows/macOS 交互待验证。
 
@@ -51,12 +51,14 @@ Windows 10/11 的直线边缘应在黑、白、彩色以及不同不透明度下
 
 当前云端没有 Windows/macOS 交互桌面。源码 review、本地回归和跨平台编译分别提供证据，不作为这些平台已通过交互验收或“零回归”的结论。
 
-## 0.1.7 测试构建与发布边界
+## 0.1.7 版本与发布流程
 
-PR #3 将 npm、Cargo、Tauri 及锁文件中的应用版本统一为 0.1.7，原生阴影修复随该版本构建进入测试包。沿用产品名称、应用标识和配置结构；已安装的 0.1.6 不会因 PR 更新而自动改变，需运行包含修复的新构建。
+PR #3 将 npm、Cargo、Tauri 及锁文件中的应用版本统一为 0.1.7，原生阴影修复随该版本构建进入安装包。沿用产品名称、应用标识和配置结构；已安装的 0.1.6 不会因 PR 更新而自动改变，需运行包含修复的新构建。
 
 版本差异 review 确认六处应用版本字段一致，第三方依赖版本及阴影修复代码未改变。0.1.7 的本地 fmt、clippy、17 项 Rust 测试、4 项前端测试、类型检查、生产资源构建及原生调试构建通过；原生启动、旧配置恢复、托盘“显示并编辑”和正常退出检查通过。
 
-本次只更新原 PR 并生成四平台 CI 产物，不创建 Git tag 或 GitHub Release，不替换已发布的 0.1.6 安装包。`.github/RELEASE_TAG` 的文本同步为预备版本 `v0.1.7`，它不是 Git tag，当前工作流也不读取该文件触发发布；发布 job 仅在 `github.ref_type == 'tag'` 时运行。
+[0.1.7 测试构建 CI](https://github.com/JakeJia/Useless-subtitle/actions/runs/38678931317)已通过质量检查及四平台构建，测试提交为 `24b8bbbe635d6313efa8951c1e7a8ae7f089735a`。Windows 便携 EXE 的文件版本及产品版本已核对为 0.1.7.0，下载归档的 SHA-256 与 GitHub 产物记录一致。发布准备仅同步文档和 Release 正文，应用代码及依赖保持该已验证提交的内容。
 
-CI 成功后，从 PR 的最新 Actions 运行下载对应平台产物；Windows 可使用其中的便携 ZIP。以 PR 说明中的提交及构建链接区分此次 0.1.7 测试包和此前版本的 CI 产物。Windows/macOS 交互待验状态继续保留。
+完成本次文档差异 review 和版本一致性检查后合并 PR，确认主分支包含修复及全部 0.1.7 版本字段，再从该提交创建 `v0.1.7` tag。tag 工作流重新执行质量检查和 Windows x64、macOS Intel、macOS Apple Silicon、Linux x64 构建，全部通过后才运行发布 job。最终核对 tag 指向、正式 Release 及 10 个预期产物；不改写 v0.1.6 的 tag 或安装包。
+
+发布结果以 [v0.1.7 Release](https://github.com/JakeJia/Useless-subtitle/releases/tag/v0.1.7) 和对应 Actions 为准。Windows/macOS 交互待验及未签名分发状态继续保留；构建成功不代替真机验收。

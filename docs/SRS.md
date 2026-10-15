@@ -6,11 +6,11 @@
 >
 > **Document version:** v0.4
 >
-> **Status:** v0.1.6 released; native-shadow correction included in unpublished 0.1.7 test builds, Windows/macOS interaction validation pending
+> **Status:** Implemented through v0.1.7; automated and Linux checks passed, Windows/macOS interaction validation pending
 >
-> **Implementation baseline:** v0.1.6, following v0.1.5
+> **Implementation baseline:** v0.1.7, following v0.1.6
 >
-> **Last updated:** 2026-10-15
+> **Last updated:** 2026-10-14 (America/Phoenix)
 >
 > **Source of truth:** This document and its Chinese translation define the same requirements. A behavior is release-ready only when both documents and the implementation agree.
 
@@ -20,7 +20,7 @@ Useless Subtitle is a lightweight desktop utility that places one or more config
 
 The scope retains the v0.1.5 baseline: mask lifecycle management, appearance controls, native dragging and resizing, safe click-through locking, system-tray recovery, multi-mask persistence, and monitor/DPI-aware restoration.
 
-Revision v0.4 adds three requirements: create one default mask when the validated startup collection is empty, use 100% opacity for new default masks, and remove the visible mask border and edge shadow. v0.1.6 implements the startup/default-opacity changes and removes CSS borders and inset shadows. Subsequent Windows feedback exposed an enabled native window shadow; the [native-shadow review](./native-shadow-review.md) tracks its correction and regression checks. The [startup and appearance development plan](./startup-appearance-plan.md) records the original implementation and release.
+Revision v0.4 adds three requirements: create one default mask when the validated startup collection is empty, use 100% opacity for new default masks, and remove the visible mask border and edge shadow. v0.1.6 implements the startup/default-opacity changes and removes CSS borders and inset shadows. v0.1.7 also disables native mask-window shadows after Windows feedback identified a remaining frame stroke. The [native-shadow review](./native-shadow-review.md) records the correction, regression checks, and release process. The [startup and appearance development plan](./startup-appearance-plan.md) records the original implementation and release.
 
 All three requirements apply across supported platforms. The reported behavior was observed on Windows. Limited Linux X11 interaction checks have passed; Windows/macOS interaction validation remains pending. Shared code and successful package builds do not establish interactive validation on those platforms.
 
@@ -195,5 +195,5 @@ Windows is the primary manual validation platform for this revision. macOS Intel
 
 | Document version | Date | Change |
 |---|---|---|
-| v0.4 | 2026-10-15 | v0.1.6 delivered empty-startup defaults, 100% default opacity, and CSS border/shadow removal. Preserve saved appearance and duplicate inheritance. Follow-up Windows feedback identified a native-shadow omission; its correction and regression review are tracked separately. Windows/macOS interaction validation remains pending. |
+| v0.4 | 2026-10-14 | v0.1.6 delivered empty-startup defaults, 100% default opacity, and CSS border/shadow removal. v0.1.7 disables native mask-window shadows. Saved appearance and duplicate inheritance remain unchanged. Automated and Linux checks passed; Windows/macOS interaction validation remains pending. |
 | v0.3 | 2026-08-11 | Established the v0.1.5 implementation baseline. |
