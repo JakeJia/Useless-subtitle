@@ -1,6 +1,6 @@
 # 启动与外观开发计划
 
-> **状态：** 实现、阶段 review 和本地回归完成；远端 CI 与发布状态以 GitHub PR、tag 和 Release 为准
+> **状态：** v0.1.6 已发布；后续 Windows 灰边反馈及原生阴影补充修复见第 8 节
 >
 > **日期：** 2026-10-14
 >
@@ -100,8 +100,8 @@
 - [x] 实现完成后同步更新 [`README.md`](../README.md) 与 [`README_zh.md`](./README_zh.md)：写明空集合启动补建、100% 默认值，以及运行期间零遮罩与下次启动的区别。
 - [x] 实现和对应验证完成后更新 SRS 与本计划状态；仍未验证的平台继续标为待验证。
 - [x] 确定软件版本为 v0.1.6，统一 npm、Cargo、Tauri、锁文件及 `.github/RELEASE_TAG`；发布前仍须通过远端 CI。
-- [ ] 提交并 review PR，等待分支和合并后 `main` 的四平台构建通过。
-- [ ] 从已验证的 `main` 提交创建 `v0.1.6` tag，核实 Release 和 10 个预期产物。
+- [x] 提交并 review PR，分支和合并后 `main` 的四平台构建通过，见 [PR #2](https://github.com/JakeJia/Useless-subtitle/pull/2)。
+- [x] 从已验证的 `main` 提交创建 `v0.1.6` tag，[Release](https://github.com/JakeJia/Useless-subtitle/releases/tag/v0.1.6) 已核实 10 个预期产物。
 
 ## 4. 验证计划
 
@@ -173,3 +173,9 @@ Linux 交互通过 X11 指针事件和应用实际导出的 D-Bus 托盘菜单�
 本次目标为 `v0.1.6`。先提交 PR 并 review，确认质量检查及 Windows x64、macOS Intel、macOS Apple Silicon、Linux x64 构建通过；合并后等待同一 `main` 提交的完整流程通过，再从该提交创建 tag。tag 流程再次构建并发布，最后核对正式 Release、tag 对应提交及 10 个产物。发布说明明确 Windows/macOS 交互待验证及安装包未签名，构建成功不代替人工验收。
 
 预期产物：Windows 的 MSI、NSIS 安装程序和便携 ZIP；macOS 两个架构各有 DMG 和便携 ZIP；Linux 的 AppImage、DEB 和 RPM。发布过程的实时结果以 GitHub 为准，不在尚未执行的开发提交中提前标为已发布。
+
+## 8. Windows 原生阴影补充修复
+
+v0.1.6 发布后，用户仍观察到灰色细边。复查确认上一轮只移除了 CSS 边框与内阴影，未关闭原生窗口阴影。Tauri 的 Windows 无装饰窗口默认阴影会引入额外框线，因此上一轮 Linux 检查不能证明 Windows 已满足 FR-APP-005。
+
+补充修复仅在遮罩窗口创建时设置 `shadow(false)`。依赖路径 review、回归结果、Windows 几何及交互待验项目见[原生阴影修复 review](./native-shadow-review.md)。本节修正实现状态，不改变三项需求或配置格式。

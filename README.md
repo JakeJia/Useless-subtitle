@@ -43,7 +43,7 @@ Current community builds may be unsigned. macOS Gatekeeper or Windows SmartScree
 5. Once locked, the mask intentionally has no clickable controls. Open the system tray menu and choose **Show and Edit** for one mask or **Unlock All**.
 6. Closing every mask leaves the application running in the tray for that session. Choose **New Mask** to create another or **Quit** to exit. The next launch creates one default mask if the saved collection is still empty.
 
-New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. The mask surface has no visible border or edge shadow in either edit or locked mode.
+New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. v0.1.6 removes CSS mask borders and inset shadows; a [native-shadow correction](./docs/native-shadow-review.md) addresses a remaining Windows edge.
 
 ## Development
 
@@ -62,7 +62,7 @@ GitHub Actions performs frontend checks, Rust formatting/lint/tests, and package
 
 ## Documentation
 
-- [Software Requirements Specification](./docs/SRS.md) — v0.4 requirements implemented for v0.1.6; platform validation status is recorded in the development plan.
+- [Software Requirements Specification](./docs/SRS.md) — v0.4 requirements, v0.1.6 delivery, and native-shadow follow-up validation.
 - [Startup and Appearance Development Plan](./docs/startup-appearance-plan.md) — implementation, stage reviews, tests, and remaining platform checks (Chinese).
 - [Historical Implementation Plan](./docs/implement_plan.md) — archived description of the original four-sprint implementation.
 
