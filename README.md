@@ -43,7 +43,7 @@ Current community builds may be unsigned. macOS Gatekeeper or Windows SmartScree
 5. Once locked, the mask intentionally has no clickable controls. Open the system tray menu and choose **Show and Edit** for one mask or **Unlock All**.
 6. Closing every mask leaves the application running in the tray for that session. Choose **New Mask** to create another or **Quit** to exit. The next launch creates one default mask if the saved collection is still empty.
 
-New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. v0.1.6 removes CSS mask borders and inset shadows; a [native-shadow correction](./docs/native-shadow-review.md) addresses a remaining Windows edge.
+New masks default to black at 100% opacity. Restoring masks preserves their saved color and opacity, and duplicates inherit their source appearance. v0.1.6 removes CSS mask borders and inset shadows. The [native-shadow correction](./docs/native-shadow-review.md) is included in unpublished 0.1.7 test builds from [PR #3](https://github.com/JakeJia/Useless-subtitle/pull/3); the current published release remains v0.1.6.
 
 ## Development
 

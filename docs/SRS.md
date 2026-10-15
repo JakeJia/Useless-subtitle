@@ -6,7 +6,7 @@
 >
 > **Document version:** v0.4
 >
-> **Status:** v0.1.6 released; native-shadow correction under validation, Windows/macOS interaction validation pending
+> **Status:** v0.1.6 released; native-shadow correction included in unpublished 0.1.7 test builds, Windows/macOS interaction validation pending
 >
 > **Implementation baseline:** v0.1.6, following v0.1.5
 >
